@@ -1,7 +1,8 @@
 """material modul, to be included in sceneKit"""
 
 from ui import parse_color, Image
-from collections import OrderedDict, Iterable
+from collections import OrderedDict
+from collections.abc import Iterable
 
 import sceneKit
 from .sceneKitEnv import *

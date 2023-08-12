@@ -1,7 +1,8 @@
 """environment for sceneKit"""
 
 from objc_util import *
-from collections import namedtuple, Iterable
+from collections import namedtuple
+from collections.abc import Iterable
 from ui import parse_color, Image
 import ui
 from types import MethodType

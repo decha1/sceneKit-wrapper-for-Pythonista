@@ -1,6 +1,7 @@
 """constraints modul, to be included in sceneKit"""
 
-from collections import OrderedDict, Iterable
+from collections import OrderedDict
+from collections.abc import Iterable
 
 import sceneKit
 from .sceneKitEnv import *
