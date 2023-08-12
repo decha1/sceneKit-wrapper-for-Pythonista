@@ -1,1 +1,1 @@
-from .SceneKitDemos.ship import shipDemo
+from SceneKitDemos.ship import shipDemo
