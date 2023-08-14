@@ -76,14 +76,16 @@ class Demo:
 
         # light_node_1
         light_node_1 = scn.Node()
-        light_node_1.position = (100, 50, 100)
+        light_node_1.position = (10, 5, 10)
         light = scn.Light()
+        light.intensity = 500
         light.type = scn.LightTypeDirectional
         light.castsShadow = True
         light.color = "white"
         light_node_1.light = light
         light_node_1.constraints = constraint
         root_node.addChildNode(light_node_1)
+        self.light_node_1 = light_node_1
 
         # light_node_2
         light_node_2 = scn.Node()
@@ -94,14 +96,14 @@ class Demo:
         light.color = "white"
         light_node_2.light = light
         light_node_2.constraints = constraint
-        root_node.addChildNode(light_node_2)
+        #root_node.addChildNode(light_node_2)
 
         # ambient light
         ambient_light = scn.Light()
         ambient_light.type = scn.LightTypeAmbient
         ambient_light.name = "ambient light"
         ambient_light.color = (0.99, 1.0, 0.86)
-        ambient_light.intensity = 100
+        ambient_light.intensity = 10
         ambient_node = scn.Node()
         ambient_node.light = ambient_light
         root_node.addChildNode(ambient_node)
@@ -109,7 +111,7 @@ class Demo:
         main_view.present(style="fullscreen", hide_title_bar=False)
 
     def update(self, aview, atime):
-        self.light_node.transform = aview.pointOfView.transform
+        self.light_node_1.transform = aview.pointOfView.transform
 
 
 Demo.run()
