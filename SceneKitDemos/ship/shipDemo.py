@@ -3,7 +3,30 @@ modified DE
             
 using the ship.scn file from XCode
 """
+'''
+If there is no node with a camera, a new node is created with the
+name "default camera" and it's camera property set to a new camera. The pointOfView
+property is set to this node. This camera is used 
+to render the scene. This default node/camera seems to be created late, maybe right before
+the first rendering cycle, and is the pointOfView is set to None during scene initialization.
 
+If there are nodes with a camera, then the node with the camera that is first defined will be used as the 
+the pointOfView node. The pointOfView node can also be specified by directly setting it to a node with a 
+camera.
+
+
+If the property allowsCameraControl is set to True, the pointOfView node remains unchanged if no 
+user input occurs. After the first camera control movement occurs, a new node is created
+with a new camera (I think it has the same properties as the default camera prior to user input). The original node
+and original camera remain unchanged. The name of the new node is "kSCNFreeViewCameraName" and the name of the new camera
+is "kSCNFreeViewCameraNameCamera". The position of the new node is transformed based on the settings of the CameraController.
+
+The new node that is controlled by the CameraController (and by the user) does not have any child nodes. 
+
+Nodes with lights can be added to the new camera node if you want lights to follow the camera, put code in the update
+delegate
+
+'''
 from objc_util import *
 import ctypes
 import sceneKit as scn
@@ -14,13 +37,14 @@ import math
 class Demo:
     def __init__(self):
         self.name = "ship!"
-        pass
-
+        self.count = 3000000
+        self.flag = True
+        
     @classmethod
     def run(cls):
         cls().main()
 
-    @on_main_thread
+    #@on_main_thread
     def main(self):
         # main_view
         main_view = ui.View()
@@ -33,7 +57,14 @@ class Demo:
         scene_view.autoresizingMask = (
             scn.ViewAutoresizing.FlexibleHeight | scn.ViewAutoresizing.FlexibleWidth
         )
+        print("aaaaaa")
+        print(scene_view.pointOfView)
+        scene_view.scene = scn.Scene()
         scene_view.scene = scn.Scene.sceneWithURL(url="ship.scn")
+        print(scene_view.pointOfView)
+        
+        self.scene_view = scene_view
+        print(dir(scene_view.defaultCameraController))
 
         # shorter name for scene's rootNode
         root_node = scene_view.scene.rootNode
@@ -78,40 +109,62 @@ class Demo:
         light_node_1 = scn.Node()
         light_node_1.position = (10, 5, 10)
         light = scn.Light()
-        light.intensity = 500
+        light.intensity = 10000
         light.type = scn.LightTypeDirectional
         light.castsShadow = True
-        light.color = "white"
+        light.color = "blue"
         light_node_1.light = light
         light_node_1.constraints = constraint
-        root_node.addChildNode(light_node_1)
+        #scene_view.pointOfView.addChildNode(light_node_1)
+        print(f"main {scene_view.pointOfView}")
         self.light_node_1 = light_node_1
 
         # light_node_2
         light_node_2 = scn.Node()
         light_node_2.position = (100, 50, 100)
         light = scn.Light()
+        light.intensity = 1000
         light.type = scn.LightTypeDirectional
         light.castsShadow = True
-        light.color = "white"
+        light.color = "green"
         light_node_2.light = light
         light_node_2.constraints = constraint
-        #root_node.addChildNode(light_node_2)
+        root_node.addChildNode(light_node_2)
 
         # ambient light
         ambient_light = scn.Light()
         ambient_light.type = scn.LightTypeAmbient
         ambient_light.name = "ambient light"
-        ambient_light.color = (0.99, 1.0, 0.86)
-        ambient_light.intensity = 10
+        ambient_light.color = "red"
+        ambient_light.intensity = 1000
         ambient_node = scn.Node()
         ambient_node.light = ambient_light
         root_node.addChildNode(ambient_node)
 
         main_view.present(style="fullscreen", hide_title_bar=False)
 
+    #@on_main_thread
     def update(self, aview, atime):
-        self.light_node_1.transform = aview.pointOfView.transform
+        #self.light_node_1.transform = aview.pointOfView.transform
+        '''
+        if self.flag:
+            print("flag")
+            print(self.scene_view.pointOfView)
+            self.scene_view.pointOfView.addChildNode(self.light_node_1)
+            print(self.scene_view.pointOfView)
+            self.flag = False
+        return '''
+        print(self.count)
+        self.count += 1
+        if self.count > 30:
+            self.count = 0
+            print("------------ update")
+            print(self.scene_view.pointOfView)
+            self.scene_view.pointOfView.addChildNode(self.light_node_1)
+            print(self.scene_view.pointOfView)
+        else:
+            return
+            self.scene_view.pointOfView.addChildNode(self.light_node_1)
 
 
 Demo.run()
