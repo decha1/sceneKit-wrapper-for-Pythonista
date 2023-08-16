@@ -3,18 +3,44 @@ modified DE
             
 using the ship.scn file from XCode
 """
-'''
+"""
+
+When a sceneView is instantiated, the pointOfView property is set to None. 
+The pointOfView property can be set to a node that has its camera property set to a 
 If there is no node with a camera, a new node is created with the
 name "default camera" and it's camera property set to a new camera. The pointOfView
 property is set to this node. This camera is used 
 to render the scene. This default node/camera seems to be created late, maybe right before
-the first rendering cycle, and is the pointOfView is set to None during scene initialization.
+the first rendering cycle, and is the pointOfView is set to None during scene initialization. To get a reference
+to this default camera node, read the pointOfView variable with code in the update delegate.
+
+How the position of the "default camera" node is unclear, appears to depend on the objects in the scene.
+
+Attaching node with lights to the "default camera" node appears to do nothing, i.e. the light will not illuminate any
+objects. Nodes with lights attached to the "kSCNFreeViewCameraName" node (see below) will work.
+
+If a premade scene is loaded (as in the shipDemo file) a default camera appears to be already included, and can be 
+referenced during initialization before rendering.
+
 
 If there are nodes with a camera, then the node with the camera that is first defined will be used as the 
-the pointOfView node. The pointOfView node can also be specified by directly setting it to a node with a 
-camera.
+the pointOfView node. The pointOfView node can also be specified by directly setting it to a node that has
+its camera property set to a camera object. 
 
+The sceneView will then use the specified node/camera to render the scene.
 
+If  (1) the pointOfView property is not set in code, and 
+    (2) a node with a camera has not been instantiated,
+then a new node with a new camera is created by SceneKit, and the pointOfView property is set to this
+new node. The node has the name "default camera" (the camera's name is not set). How the position and 
+direction of the new node is not clear, but it seems to point towards the root node and the position
+is influenced by the objects in the scene.
+
+If  (1) the pointOfView property is not set in code, and
+    (2) there is one or more nodes with cameras
+then the node with the camera that is the first to be instantiated is used as the pointOfView node.
+
+   
 If the property allowsCameraControl is set to True, the pointOfView node remains unchanged if no 
 user input occurs. After the first camera control movement occurs, a new node is created
 with a new camera (I think it has the same properties as the default camera prior to user input). The original node
@@ -26,25 +52,25 @@ The new node that is controlled by the CameraController (and by the user) does n
 Nodes with lights can be added to the new camera node if you want lights to follow the camera, put code in the update
 delegate
 
-'''
-from objc_util import *
-import ctypes
+
+How the pointOfView property is set 
+"""
+from objc_util import on_main_thread
 import sceneKit as scn
 import ui
-import math
 
 
 class Demo:
     def __init__(self):
-        self.name = "ship!"
+        # variables used in the update delegate
         self.count = 3000000
         self.flag = True
-        
+
     @classmethod
     def run(cls):
         cls().main()
 
-    #@on_main_thread
+    # @on_main_thread
     def main(self):
         # main_view
         main_view = ui.View()
@@ -57,35 +83,27 @@ class Demo:
         scene_view.autoresizingMask = (
             scn.ViewAutoresizing.FlexibleHeight | scn.ViewAutoresizing.FlexibleWidth
         )
-        print("aaaaaa")
-        print(scene_view.pointOfView)
         scene_view.scene = scn.Scene()
         scene_view.scene = scn.Scene.sceneWithURL(url="ship.scn")
-        print(scene_view.pointOfView)
-        
-        self.scene_view = scene_view
-        print(dir(scene_view.defaultCameraController))
 
         # shorter name for scene's rootNode
         root_node = scene_view.scene.rootNode
 
-        # set up graphic cycle
+        # set up render cycle
         scene_view.delegate = self
         scene_view.preferredFramesPerSecond = 30
 
-        # default camera setup. The default camera is a separate camera, and is
-        # used by the default camera controller, which is used when we set allowsCameraControl
-        # to true.
-        # ??? The pointOfView property will return a node that the default camera is attached to
-        # but you can't modify it?? cant attach lights?
+        # camera controller setup
         scene_view.allowsCameraControl = True
         scene_view.defaultCameraController.interactionMode = (
             scn.InteractionMode.OrbitArcball
         )
 
-        # camera
-        # this is a camera we define.
-
+        # camera_node setup
+        # if there is the only one node with a camera, that node becomes the pointOfView node
+        # if there are multiple nodes with cameras, the node with the first camera defined becomes the pointOfView node
+        # if there were no nodes with a camera, a new node (name = "default camera") with a new camera is created
+        #       and becomes the pointOfView node
         camera_node = scn.Node()
         camera_node.camera = scn.Camera()
         camera_node.position = (0, 0, 5)
@@ -115,7 +133,7 @@ class Demo:
         light.color = "blue"
         light_node_1.light = light
         light_node_1.constraints = constraint
-        #scene_view.pointOfView.addChildNode(light_node_1)
+        # scene_view.pointOfView.addChildNode(light_node_1)
         print(f"main {scene_view.pointOfView}")
         self.light_node_1 = light_node_1
 
@@ -143,17 +161,17 @@ class Demo:
 
         main_view.present(style="fullscreen", hide_title_bar=False)
 
-    #@on_main_thread
+    # @on_main_thread
     def update(self, aview, atime):
-        #self.light_node_1.transform = aview.pointOfView.transform
-        '''
+        # self.light_node_1.transform = aview.pointOfView.transform
+        """
         if self.flag:
             print("flag")
             print(self.scene_view.pointOfView)
             self.scene_view.pointOfView.addChildNode(self.light_node_1)
             print(self.scene_view.pointOfView)
             self.flag = False
-        return '''
+        return"""
         print(self.count)
         self.count += 1
         if self.count > 30:
