@@ -607,15 +607,13 @@ class Box(Geometry, _GeoHeight, _GeoWidth, _GeoLength):
 
     chamferRadius = property(getChamferRadius, setChamferRadius)
 
-    def setChamferRadiusSegmentCount(self, aCount):
-        self.ID.setChamferRadiusSegmentCount_(aCount)
+    def setChamferSegmentCount(self, aCount):
+        self.ID.setChamferSegmentCount_(aCount)
 
-    def getChamferRadiusSegmentCount(self):
-        return self.ID.chamferRadiusSegmentCount()
+    def getChamferSegmentCount(self):
+        return self.ID.chamferSegmentCount()
 
-    chamferRadiusSegmentCount = property(
-        getChamferRadiusSegmentCount, setChamferRadiusSegmentCount
-    )
+    chamferSegmentCount = property(getChamferSegmentCount, setChamferSegmentCount)
 
 
 class Capsule(Geometry, _GeoHeight, _GeoRadialSegmentCount):
