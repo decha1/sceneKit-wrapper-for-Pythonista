@@ -1,11 +1,48 @@
 import sceneKit as scn
 import ui
 
-
+def make_material(color):
+        material = scn.Material()
+        material.diffuse.contents = color
+        return material
+        
+class axis(scn.Node):
+    def __init__(self, text, color):
+        super().__init__()
+        
+        self.axis = self.make_axis(color)
+        self.text = self.make_text(text, color)
+        
+        self.addChildNode(self.axis)
+        self.addChildNode(self.text)
+    
+    def make_axis(self, color):
+        axis = scn.Node()
+        axis.geometry = scn.Tube(0.05, 0.06, 20) #Tube returns a cylinder along y axis
+        axis.geometry.materials = make_material(color)
+        return axis
+        
+    def make_text(self, text, color):
+        string_node = scn.Node()
+        string_node.geometry = scn.Text(text, 0)
+        string_node.geometry.materials = make_material(color)
+        string_node.scale = (0.1, 0.1, 0.1)
+        string_node.position = (0, 10, 0)
+        string_node.constraints = scn.BillboardConstraint.billboardConstraint()
+        return string_node
+        
+    
+        
+        
 class Demo:
     def __init__(self):
         pass
 
+    @classmethod
+    def run(cls):
+        cls().main()
+        
+        
     def main(self):
         # main view ------------------------------------------------------------------------------------
         main_view = ui.View()
@@ -14,7 +51,7 @@ class Demo:
         main_view.name = "Base Scene"
 
         # sceneView ----------------------------------------------------------------------------------------
-        scene_view = scn.View(main_view.frame, superVIew=main_view)
+        scene_view = scn.View(main_view.frame, superView=main_view)
         scene_view.autoresizingMask = (
             scn.ViewAutoresizing.FlexibleHeight | scn.ViewAutoresizing.FlexibleWidth
         )
@@ -36,7 +73,7 @@ class Demo:
         # camera ----------------------------------------------------------------------------------------
         camera_node = scn.Node()
         camera_node.camera = scn.Camera()
-        camera_node.position = (0, 30, 10)
+        camera_node.position = (0, 0, 25)
         root_node.addChildNode(camera_node)
         scene_view.pointOfView = camera_node
 
@@ -45,20 +82,40 @@ class Demo:
         # scene objects
         #
         # axes --------------------------------------------------------------------------------------------------------------
-        z_axis = scn.Node()
-        z_axis.geometry = scn.Tube(0.05, 0.06, 20)
+        
+        
+        x_axis = axis("+x", "red")
+        y_axis = axis("+y", "green")
+        z_axis = axis("+z", "blue")
+        
+        x_axis.rotation = (0, 0, 1, -3.1415 / 2)
+        z_axis.rotation = (1, 0, 0, 3.1415 / 2)
+        
+        root_node.addChildNode(x_axis)
+        root_node.addChildNode(y_axis)
         root_node.addChildNode(z_axis)
 
-        x_axis = scn.Node()
-        x_axis.geometry = scn.Tube(0.05, 0.06, 20)
-        x_axis.rotation = (0, 0, 1, 3.1415 / 2)
-        root_node.addChildNode(x_axis)
+        
+        # box -------------
+        box = scn.Node()
+        box.geometry = scn.Box(10, 10, 10, 2)
+        box.geometry.materials = (make_material("orange"),
+                                    make_material("red"),
+                                    make_material("green"),
+                                    make_material("blue"),
+                                    make_material("white"),
+                                    make_material("yellow"))
+        box.geometry.chamferSegmentCount = 100
+        root_node.addChildNode(box)
+        
+        # floor ------
+        floor = scn.Node()
+        floor.geometry = scn.Floor()
+        floor.position = (0, -10, 0)
+        floor.geometry.materials = make_material("grey")
+        root_node.addChildNode(floor)
 
-        y_axis = scn.Node()
-        y_axis.geometry = scn.Tube(0.05, 0.06, 20)
-        y_axis.rotation = (1, 0, 0, 3.1415 / 2)
-        root_node.addChildNode(y_axis)
-
+        
         # ----------------------------------------------------------------------------------------------------------------------------
         # ----------------------------------------------------------------------------------------------------------------------------
         # lights
@@ -99,8 +156,11 @@ class Demo:
         camera_node.constraints = constraint
         main_light.constraints = constraint
         fill_light.constraints = constraint
-
+        
         main_view.present(style="fullscreen", hide_title_bar=False)
 
         def update(self, aview, atime):
             return
+            
+            
+Demo.run()
