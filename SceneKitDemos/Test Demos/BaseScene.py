@@ -1,27 +1,29 @@
 import sceneKit as scn
 import ui
 
+
 def make_material(color):
-        material = scn.Material()
-        material.diffuse.contents = color
-        return material
-        
+    material = scn.Material()
+    material.diffuse.contents = color
+    return material
+
+
 class axis(scn.Node):
     def __init__(self, text, color):
         super().__init__()
-        
+
         self.axis = self.make_axis(color)
         self.text = self.make_text(text, color)
-        
+
         self.addChildNode(self.axis)
         self.addChildNode(self.text)
-    
+
     def make_axis(self, color):
         axis = scn.Node()
-        axis.geometry = scn.Tube(0.05, 0.06, 20) #Tube returns a cylinder along y axis
+        axis.geometry = scn.Tube(0.05, 0.06, 20)  # Tube returns a cylinder along y axis
         axis.geometry.materials = make_material(color)
         return axis
-        
+
     def make_text(self, text, color):
         string_node = scn.Node()
         string_node.geometry = scn.Text(text, 0)
@@ -30,19 +32,17 @@ class axis(scn.Node):
         string_node.position = (0, 10, 0)
         string_node.constraints = scn.BillboardConstraint.billboardConstraint()
         return string_node
-        
-    
-        
-        
+
+
 class Demo:
     def __init__(self):
-        pass
+        self.flag = True
+        self.count = 9999
 
     @classmethod
     def run(cls):
         cls().main()
-        
-        
+
     def main(self):
         # main view ------------------------------------------------------------------------------------
         main_view = ui.View()
@@ -59,6 +59,7 @@ class Demo:
         scene_view.delegate = self
         scene_view.preferredFramesPerSecond = 30
         scene_view.rendersContinuously = True
+        scene_view.antialiasingMode = scn.AntialiasingMode.Multisampling8X
 
         # scene ----------------------------------------------------------------------------------------
         scene_view.scene = scn.Scene()
@@ -82,32 +83,32 @@ class Demo:
         # scene objects
         #
         # axes --------------------------------------------------------------------------------------------------------------
-        
-        
+
         x_axis = axis("+x", "red")
         y_axis = axis("+y", "green")
         z_axis = axis("+z", "blue")
-        
+
         x_axis.rotation = (0, 0, 1, -3.1415 / 2)
         z_axis.rotation = (1, 0, 0, 3.1415 / 2)
-        
+
         root_node.addChildNode(x_axis)
         root_node.addChildNode(y_axis)
         root_node.addChildNode(z_axis)
 
-        
         # box -------------
         box = scn.Node()
         box.geometry = scn.Box(10, 10, 10, 2)
-        box.geometry.materials = (make_material("orange"),
-                                    make_material("red"),
-                                    make_material("green"),
-                                    make_material("blue"),
-                                    make_material("white"),
-                                    make_material("yellow"))
+        box.geometry.materials = (
+            make_material("green"),
+            make_material("orange"),
+            make_material("blue"),
+            make_material("red"),
+            make_material("white"),
+            make_material("yellow"),
+        )
         box.geometry.chamferSegmentCount = 100
         root_node.addChildNode(box)
-        
+
         # floor ------
         floor = scn.Node()
         floor.geometry = scn.Floor()
@@ -115,7 +116,6 @@ class Demo:
         floor.geometry.materials = make_material("grey")
         root_node.addChildNode(floor)
 
-        
         # ----------------------------------------------------------------------------------------------------------------------------
         # ----------------------------------------------------------------------------------------------------------------------------
         # lights
@@ -133,11 +133,12 @@ class Demo:
         main_light = scn.Node()
         main_light.name = "Main Light"
         main_light.light = scn.Light()
-        main_light.light.intensity = 400
-        main_light.light.type = scn.LightTypeDirectional
+        main_light.light.intensity = 1000
+        main_light.light.type = scn.LightTypeSpot
         main_light.light.castsShadow = True
         main_light.light.color = "white"
-        main_light.position = (50, 200, 50)
+        main_light.position = (10, 10, 10)
+        self.main_light = main_light
 
         # fill light
         fill_light = scn.Node()
@@ -148,6 +149,7 @@ class Demo:
         fill_light.light.castsShadow = True
         fill_light.light.color = "white"
         fill_light.position = (-50, 200, 50)
+        self.fill_light = fill_light
 
         # constraint ----------------------------------------------------------------------------------------
         constraint = scn.LookAtConstraint.lookAtConstraintWithTarget(root_node)
@@ -155,12 +157,22 @@ class Demo:
 
         camera_node.constraints = constraint
         main_light.constraints = constraint
-        fill_light.constraints = constraint
-        
+        # fill_light.constraints = constraint
+
+        camera_node.addChildNode(main_light)
+        # camera_node.addChildNode(fill_light)
         main_view.present(style="fullscreen", hide_title_bar=False)
 
-        def update(self, aview, atime):
-            return
-            
-            
+    def update(self, aview, atime):
+        if self.flag:
+            if aview.pointOfView.name == "kSCNFreeViewCameraName":
+                self.flag = False
+                aview.pointOfView.addChildNode(self.main_light)
+
+        self.count += 1
+        if self.count > 60:
+            self.count = 0
+            print(aview.pointOfView)
+
+
 Demo.run()
