@@ -10,6 +10,18 @@ import sceneKit as scn
 import ui
 import math
 
+class aaa:
+    def __init__(self):
+        self.count = 0
+        
+    def update(self, aview, atime):
+        #scene_view.pointOfView.addChildNode(light_node)
+    
+        self.count += 1
+        if self.count > 30:
+            print(aview.pointOfView)
+            self.count = 0
+        
 
 @on_main_thread
 def demo():
@@ -27,12 +39,23 @@ def demo():
     scene_view.scene = scn.Scene()
 
     root_node = scene_view.scene.rootNode
-
+    
+    camera_node_2 = scn.Node()
     camera_node = scn.Node()
+    camera_node_3 = scn.Node()
+    
     camera_node.camera = scn.Camera()
     camera_node.position = (0, 0, 5)
-    root_node.addChildNode(camera_node)
-
+    root_node.addChildNode(camera_node)    
+    
+    camera_node_2.camera = scn.Camera()
+    root_node.addChildNode(camera_node_2)
+    
+    camera_node_3.camera = scn.Camera()
+    root_node.addChildNode(camera_node_3)
+    print(camera_node.camera, camera_node_2.camera, camera_node_3.camera)
+    print(camera_node, camera_node_2, camera_node_3)
+    print(scene_view.pointOfView)
     verts = [
         scn.Vector3(0, 1, 0),
         scn.Vector3(-0.5, 0, 0.5),
@@ -115,7 +138,7 @@ def demo():
 
     constraint = scn.LookAtConstraint.lookAtConstraintWithTarget(geometry_node)
     constraint.gimbalLockEnabled = True
-    camera_node.constraints = constraint
+    #camera_node.constraints = constraint
 
     light_node = scn.Node()
     light_node.position = (100, 0, -10)
@@ -124,15 +147,17 @@ def demo():
     light.castsShadow = True
     light.color = "white"
     light_node.light = light
-    root_node.addChildNode(light_node)
-
+    #root_node.addChildNode(light_node)
+    
     rotate_action = scn.Action.repeatActionForever(
         scn.Action.rotateBy(0, math.pi * 2, 0, 10)
     )
     geometry_node.runAction(rotate_action)
     geometry2_node.runAction(rotate_action)
 
+    scene_view.delegate = aaa()
+    
     main_view.present(style="fullscreen", hide_title_bar=False)
 
-
+    
 demo()

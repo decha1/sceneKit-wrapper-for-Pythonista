@@ -11,7 +11,7 @@ from objc_util import *
 import sceneKit as scn
 import ui
 import motion
-import Gestures
+import gestures
 import math
 import random
 
@@ -65,22 +65,22 @@ class GameViewController:
         # setup accelerometer
         self.setupAccelerometer()
 
-        self.g = Gestures.Gestures()
-        self.g.add_long_press(
+        #self.g = gestures
+        gestures.long_press(
             self.main_view,
             self.touch_1,
             number_of_taps_required=None,
             number_of_touches_required=1,
             minimum_press_duration=0.2,
         )
-        self.g.add_long_press(
+        gestures.long_press(
             self.main_view,
             self.touch_2,
             number_of_taps_required=None,
             number_of_touches_required=2,
             minimum_press_duration=0.2,
         )
-        self.g.add_long_press(
+        gestures.long_press(
             self.main_view,
             self.touch_3,
             number_of_taps_required=None,
@@ -88,7 +88,7 @@ class GameViewController:
             minimum_press_duration=0.2,
         )
 
-        self.g.add_doubletap(
+        gestures.doubletap(
             self.main_view, self.touch_dt, number_of_touches_required=2
         )
 
@@ -651,21 +651,21 @@ class GameViewController:
         scn.Transaction.commit()
 
     def touch_1(self, data):
-        if data.state == Gestures.Gestures.BEGAN:
+        if data.state == gestures.BEGAN:
             self.touchCount = 1
-        elif data.state == Gestures.Gestures.ENDED:
+        elif data.state == gestures.ENDED:
             self.touchCount = 0
 
     def touch_2(self, data):
-        if data.state == Gestures.Gestures.BEGAN:
+        if data.state == gestures.BEGAN:
             self.touchCount = 2
-        elif data.state == Gestures.Gestures.ENDED:
+        elif data.state == gestures.ENDED:
             self.touchCount = 0
 
     def touch_3(self, data):
-        if data.state == Gestures.Gestures.BEGAN:
+        if data.state == gestures.BEGAN:
             self.touchCount = 3
-        elif data.state == Gestures.Gestures.ENDED:
+        elif data.state == gestures.ENDED:
             self.touchCount = 0
 
     def touch_dt(self, data):
@@ -716,8 +716,9 @@ class GameViewController:
         self.ticks = 0
 
     def shutDown(self):
+        self.main_view.close()
         motion.stop_updates()
-        self.g.remove_all_gestures(self.main_view)
+        gestures.remove_all_gestures(self.main_view)
         self.myCameraNode.removeAllActions()
         self.pipeNode.removeAllParticleSystems()
         self.smokeHandle.removeAllParticleSystems()
@@ -726,9 +727,9 @@ class GameViewController:
 
         for aView in self.main_view.subviews:
             self.main_view.remove_subview(aView)
-
+        
         self.scnView.removeFromSuperview()
-
+        return
         self.main_view.close()
         ui.delay(self.exit, 2.0)
 

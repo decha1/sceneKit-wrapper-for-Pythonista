@@ -6,7 +6,7 @@ import sceneKit as scn
 import ui
 import math
 
-
+        
 @on_main_thread
 def demo():
     main_view = ui.View()
@@ -88,12 +88,15 @@ def demo():
     light_node.position = (0, 105, 5)
     light_node.rotation = (1, 0, 0, -math.pi / 2)
     light = scn.Light.light()
-    light.type = "spot"
+    light.type = scn.LightTypeSpot
     light.spotOuterAngle = 90
     light.castsShadow = True
     light.shadowSampleCount = 16
     light.color = "white"
+    light.intensity = 5000
     light_node.light = light
+    constraint = scn.LookAtConstraint.lookAtConstraintWithTarget(root_node)
+    light_node.constraints = constraint
     root_node.addChildNode(light_node)
 
     main_view.present(style="fullscreen", hide_title_bar=False)

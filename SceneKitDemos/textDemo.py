@@ -55,6 +55,16 @@ def demo():
     light.spotOuterAngle = 65
     light.castsShadow = True
     light.shadowSampleCount = 16
+    light.shadowRadius = 10
+    
+    
+    #light_node.scale = (7, 7, 7)
+    #light.spotOuterAngle = 120
+    #light.shadowRadius = 3
+    light.zNear = 0
+    light.zFar = 1000
+    #light.shadowSampleCount = 20
+    
     light.color = "cyan"
     light_node.light = light
     root_node.addChildNode(light_node)
