@@ -80,12 +80,12 @@ class Demo:
         self.close_button.frame = (20, 40, 40, 40)
         self.close_button.background_image = ui.Image.named("emj:No_Entry_2")
 
-        # if DEBUG:
-        #     self.scene_view = scn.View((0, 25, w, h - 25), superView=self.main_view)
-        #     self.scene_view.showsStatistics = True
-        # else:
-        #     self.scene_view = scn.View((0, 0, w, h), superView=self.main_view)
-        # self.scene_view.preferredFramesPerSecond = 30
+        if DEBUG:
+            self.scene_view = scn.View((0, 25, w, h - 25), superView=self.main_view)
+            self.scene_view.showsStatistics = True
+        else:
+            self.scene_view = scn.View((0, 0, w, h), superView=self.main_view)
+        self.scene_view.preferredFramesPerSecond = 30
 
         self.scene_view.autoresizingMask = (
             scn.ViewAutoresizing.FlexibleHeight | scn.ViewAutoresizing.FlexibleWidth
