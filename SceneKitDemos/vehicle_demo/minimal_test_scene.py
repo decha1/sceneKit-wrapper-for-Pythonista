@@ -90,7 +90,7 @@ class Demo:
         self.scene_view.autoresizingMask = (
             scn.ViewAutoresizing.FlexibleHeight | scn.ViewAutoresizing.FlexibleWidth
         )
-        self.scene_view.allowsCameraControl = False
+        self.scene_view.allowsCameraControl = True
 
         self.scene_view.scene = scn.Scene()
         self.root_node = self.scene_view.scene.rootNode
@@ -292,6 +292,7 @@ class Demo:
                 self.shutDown()
             return
 
+        return 
         cx, cz, node_dist = 0.0, 0.0, 99999999999.0
         camPos = self.camera_node.position
         for aCar in self.cars:
