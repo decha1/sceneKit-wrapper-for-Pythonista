@@ -80,12 +80,12 @@ class Demo:
         self.close_button.frame = (20, 40, 40, 40)
         self.close_button.background_image = ui.Image.named("emj:No_Entry_2")
 
-        if DEBUG:
-            self.scene_view = scn.View((0, 25, w, h - 25), superView=self.main_view)
-            self.scene_view.showsStatistics = True
-        else:
-            self.scene_view = scn.View((0, 0, w, h), superView=self.main_view)
-        self.scene_view.preferredFramesPerSecond = 30
+        # if DEBUG:
+        #     self.scene_view = scn.View((0, 25, w, h - 25), superView=self.main_view)
+        #     self.scene_view.showsStatistics = True
+        # else:
+        #     self.scene_view = scn.View((0, 0, w, h), superView=self.main_view)
+        # self.scene_view.preferredFramesPerSecond = 30
 
         self.scene_view.autoresizingMask = (
             scn.ViewAutoresizing.FlexibleHeight | scn.ViewAutoresizing.FlexibleWidth
@@ -102,20 +102,20 @@ class Demo:
         self.physics_world.speed = WORLD_SPEED
         self.physics_world.contactDelegate = self
 
-        if DEBUG:
-            marker1 = scn.Sphere(0.1)
-            marker1.firstMaterial.emission.contents = (1.0, 0.14, 0.14)
-            marker1.firstMaterial.diffuse.contents = (0.0, 0.0, 0.0)
-            Demo.marker_node1 = scn.Node.nodeWithGeometry(marker1)
-            Demo.marker_node1.name = "marker1"
-            self.root_node.addChildNode(Demo.marker_node1)
+        # if DEBUG:
+        #     marker1 = scn.Sphere(0.1)
+        #     marker1.firstMaterial.emission.contents = (1.0, 0.14, 0.14)
+        #     marker1.firstMaterial.diffuse.contents = (0.0, 0.0, 0.0)
+        #     Demo.marker_node1 = scn.Node.nodeWithGeometry(marker1)
+        #     Demo.marker_node1.name = "marker1"
+        #     self.root_node.addChildNode(Demo.marker_node1)
 
-            marker2 = scn.Sphere(0.1)
-            marker2.firstMaterial.emission.contents = (0.17, 0.0, 1.0)
-            marker2.firstMaterial.diffuse.contents = (0.0, 0.0, 0.0)
-            Demo.marker_node2 = scn.Node.nodeWithGeometry(marker2)
-            Demo.marker_node2.name = "marker2"
-            self.root_node.addChildNode(Demo.marker_node2)
+        #     marker2 = scn.Sphere(0.1)
+        #     marker2.firstMaterial.emission.contents = (0.17, 0.0, 1.0)
+        #     marker2.firstMaterial.diffuse.contents = (0.0, 0.0, 0.0)
+        #     Demo.marker_node2 = scn.Node.nodeWithGeometry(marker2)
+        #     Demo.marker_node2.name = "marker2"
+        #     self.root_node.addChildNode(Demo.marker_node2)
 
         floor_geometry = scn.Floor()
         floor_geometry.reflectivity = 0.05
@@ -257,8 +257,8 @@ class Demo:
 
         self.scene_view.pointOfView = self.camera_node
 
-        if DEBUG:
-            self.main_view.add_subview(Demo.status_label)
+        # if DEBUG:
+        #     self.main_view.add_subview(Demo.status_label)
 
         self.close = False
         self.shut_down = False
@@ -292,7 +292,7 @@ class Demo:
                 self.shutDown()
             return
 
-        return 
+        return
         cx, cz, node_dist = 0.0, 0.0, 99999999999.0
         camPos = self.camera_node.position
         for aCar in self.cars:
