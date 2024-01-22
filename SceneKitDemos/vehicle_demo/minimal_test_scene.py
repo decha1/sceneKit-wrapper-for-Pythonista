@@ -3,18 +3,6 @@ physics vehicle demo with autonome cars
 (c) Peter Ulbrich, 2019
 """
 
-
-"""
-test
-
-
-
-
-
-
-
-"""
-
 from objc_util import *
 import sceneKit as scn
 import ui
@@ -283,12 +271,12 @@ class Demo:
 
     def shutDown(self):
         self.shut_down = True
-        for aCar in self.cars:
-            aCar.smoker_node.removeAllParticleSystems()
-            aCar.tire_node.removeAllParticleSystems()
-        for aNode in self.used_flags.values():
-            aNode.removeAllParticleSystems()
-            aNode.removeAllAudioPlayers()
+        # for aCar in self.cars:
+        #     aCar.smoker_node.removeAllParticleSystems()
+        #     aCar.tire_node.removeAllParticleSystems()
+        # for aNode in self.used_flags.values():
+        #     aNode.removeAllParticleSystems()
+        #     aNode.removeAllAudioPlayers()
         self.physics_world.removeAllBehaviors()
         self.scene_view.scene.paused = True
         self.scene_view.removeFromSuperview()
