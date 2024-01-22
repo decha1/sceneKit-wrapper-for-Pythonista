@@ -287,7 +287,7 @@ class Demo:
 
     def update(self, view, atTime):
         if self.close:
-            if ~self.shut_down:
+            if not self.shut_down:
                 self.shutDown()
             return
 
