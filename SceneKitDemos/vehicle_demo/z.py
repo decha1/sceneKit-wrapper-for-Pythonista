@@ -5,12 +5,16 @@ minimal test scene
 from objc_util import *
 import sceneKit as scn
 import ui
-import os
 import math
+import random
+from enum import IntEnum
+import weakref
+import os
+
 
 DEBUG = False
-MAXCARS = 3
-ENGINESOUND = True
+MAXCARS = 3  # max 5, set it lower for weaker devices
+ENGINESOUND = True  # set it to False for weaker devices or if too many cars
 MAXACTIVEREVERSE = 2
 
 UIDevice = ObjCClass("UIDevice")
@@ -18,6 +22,29 @@ device = UIDevice.currentDevice()
 machine = os.uname().machine
 system_version = int(str(device.systemVersion()).split(".")[0])
 WORLD_SPEED = 1.0 if system_version >= 13 else 2.0
+
+
+def distance(aNode, bNode):
+    a = aNode.position
+    b = bNode.position
+    return dist(a, b)
+
+
+def dist(a, b):
+    return math.sqrt(sum((x - y) ** 2 for x, y in zip(list(a), list(b))))
+
+
+def length(a):
+    return math.sqrt(sum(x**2 for x in a))
+
+
+def dot(v1, v2):
+    return sum(x * y for x, y in zip(list(v1), list(v2)))
+
+
+def det2(v1, v2):
+    return v1[0] * v2[1] - v1[1] * v2[0]
+
 
 class Demo:
     @classmethod
@@ -53,7 +80,7 @@ class Demo:
         self.physics_world = self.scene_view.scene.physicsWorld
         self.physics_world.speed = WORLD_SPEED
         self.physics_world.contactDelegate = self
-        
+
         floor_geometry = scn.Floor()
         floor_geometry.reflectivity = 0.05
         tile_image = ui.Image.named("plf:Ground_DirtCenter")
@@ -89,7 +116,13 @@ class Demo:
         self.floor_node.physicsBody = scn.PhysicsBody.staticBody()
         self.root_node.addChildNode(self.floor_node)
 
-        #---------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------
+        self.crash = Sparks().particleSystem
+        self.crash_sound = scn.AudioSource("game:Crashing")
+        self.crash_action = scn.Action.playAudioSource(self.crash_sound, False)
+        # ---------------------------------------------------------------------------
+
+        # ---------------------------------------------------------------------------
         # roadblocks
         self.road_blocks_node = scn.Node()
         self.road_blocks = []
@@ -107,9 +140,11 @@ class Demo:
         )
         self.road_blocks.append(
             RoadBlock(
-                #w=1.6, l=25, name="block 0", position=(28, 6)
-                #w=8, l=1.6, name="block 2", position=(-10, 6), rotation=-math.pi / 6
-                w=40, l=1.6, name="block 3", position=(-40, 0), rotation=-math.pi / 3
+                w=40,
+                l=1.6,
+                name="block 3",
+                position=(-40, 0),
+                rotation=-math.pi / 3,
             )
         )
         self.road_blocks.append(
@@ -118,18 +153,10 @@ class Demo:
 
         for aBlock in self.road_blocks:
             self.road_blocks_node.addChildNode(aBlock.block_node)
-        
+
         self.root_node.addChildNode(self.road_blocks_node)
-        #---------------------------------------------------------------------------
-        
-        
-        #---------------------------------------------------------------------------        
-        self.crash = Sparks().particleSystem
-        self.crash_sound = scn.AudioSource("game:Crashing")
-        self.crash_action = scn.Action.playAudioSource(self.crash_sound, False)
-        #---------------------------------------------------------------------------        
-        
-        
+        # ---------------------------------------------------------------------------
+
         self.camera_node = scn.Node()
         self.camera_node.camera = scn.Camera()
         self.camera_node.camera.zFar = 150
@@ -166,20 +193,21 @@ class Demo:
     def close(self, sender):
         self.is_close_clicked = True
         self.main_view.remove_subview(self.close_button)
-    
+
     def shut_down(self):
         self.is_shutting_down = True
         self.crash = None
-        print('before close')
+        print("before close")
         self.main_view.close()
-        
+
     def update(self, view, atTime):
         print("update")
         if self.is_close_clicked:
             if not self.is_shutting_down:
                 self.shut_down()
         return
-        
+
+
 class Sparks:
     def __init__(self):
         self.flag = scn.Sphere(0.05)
@@ -215,7 +243,8 @@ class Sparks:
             scn.ParticleBirthLocation.SCNParticleBirthLocationSurface
         )
         self.particleSystem.birthDirection = scn.ParticleBirthDirection.Random
-        
+
+
 class RoadBlock:
     block_material = scn.Material()
     block_material.diffuse.contents = (0.91, 0.91, 0.91)
@@ -233,7 +262,9 @@ class RoadBlock:
         )
         self.block_node.rotation = (0, 1, 0, rotation)
         self.block_node.physicsBody = scn.PhysicsBody.staticBody()
-        self.block_node.physicsBody.contactTestBitMask = scn.PhysicsCollisionCategory.Default.value
-        
-Demo.run()
+        self.block_node.physicsBody.contactTestBitMask = (
+            scn.PhysicsCollisionCategory.Default.value
+        )
 
+
+Demo.run()
