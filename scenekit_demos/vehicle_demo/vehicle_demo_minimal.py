@@ -157,7 +157,7 @@ class Demo:
             ),
         ]
         self.cars = [
-            Car(world=self, props=cars_properties[i]) for i in range(len(cars))
+            Car(world=self, properties=car_prop) for car_prop in cars_properties
         ]
         # ---------------------------------------------------------------------------
 
