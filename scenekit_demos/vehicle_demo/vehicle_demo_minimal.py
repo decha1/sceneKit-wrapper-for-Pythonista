@@ -120,6 +120,59 @@ class Demo:
         self.root_node.addChildNode(self.floor_node)
 
         # ---------------------------------------------------------------------------
+        # Cars
+        cars_properties = [
+            dict(name="red", position=(5, 0, 0), volume=1.0),
+            dict(
+                name="yellow",
+                too_far=25,
+                body_color=(1.0, 0.78, 0.0),
+                position=(-5, 0, -2),
+                sound="game:Pulley",
+                volume=0.1,
+            ),
+            dict(
+                name="blue",
+                too_far=30,
+                body_color=(0.0, 0.61, 1.0),
+                position=(-12, 0, -6),
+                sound="game:Woosh_1",
+                volume=0.5,
+            ),
+            dict(
+                name="green",
+                too_far=18,
+                body_color=(0.0, 0.82, 0.28),
+                position=(10, 0, -10),
+                sound="casino:DiceThrow3",
+                volume=0.8,
+            ),
+            dict(
+                name="pink",
+                too_far=20,
+                body_color=(0.91, 0.52, 0.62),
+                position=(5, 0, 10),
+                sound="casino:DieThrow3",
+                volume=0.5,
+            ),
+        ]
+        self.cars = [
+            Car(world=self, props=cars_properties[i]) for i in range(len(cars))
+        ]
+        # ---------------------------------------------------------------------------
+
+        # ---------------------------------------------------------------------------
+        # Flags
+        self.free_flags = []
+        for i in range(2 * len(self.cars)):
+            node = scn.Node()
+            self.free_flags.append(node)
+            self.root_node.addChildNode(node)
+        self.used_flags = {}
+        # ---------------------------------------------------------------------------
+
+        # ---------------------------------------------------------------------------
+        # Sparks
         self.crash = Sparks().particleSystem
         self.crash_sound = scn.AudioSource("game:Crashing")
         self.crash_action = scn.Action.playAudioSource(self.crash_sound, False)
@@ -208,6 +261,11 @@ class Demo:
         if self.is_close_clicked:
             if not self.is_shutting_down:
                 self.shut_down()
+        return
+
+
+class Car:
+    def __init__(self, world=None, properties={}):
         return
 
 
