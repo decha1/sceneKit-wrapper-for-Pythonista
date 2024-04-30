@@ -607,6 +607,9 @@ class Car:
             self.sound_player = scn.AudioPlayer.audioPlayerWithSource(self.sound)
             self.chassis_node.addAudioPlayer(self.sound_player)
 
+    def traceParticleEventBlock(self, propValues, prop, particleIndex):
+        propValues[1] = 0.0
+
 
 class Sparks:
     def __init__(self):
