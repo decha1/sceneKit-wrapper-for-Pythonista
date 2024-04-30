@@ -103,13 +103,16 @@ class Demo:
             0.0,
             1.0,
         )
+
         floor_geometry.firstMaterial.diffuse.contents = tile_image
         floor_geometry.firstMaterial.diffuse.intensity = 0.8
         floor_geometry.firstMaterial.diffuse.contentsTransform = tile_factor
+
         (
             floor_geometry.firstMaterial.diffuse.wrapS,
             floor_geometry.firstMaterial.diffuse.wrapT,
         ) = (scn.WrapMode.Repeat, scn.WrapMode.Repeat)
+
         floor_geometry.firstMaterial.locksAmbientWithDiffuse = True
         self.floor_node = scn.Node.nodeWithGeometry(floor_geometry)
         self.floor_node.name = "Floor"
