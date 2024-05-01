@@ -262,6 +262,13 @@ class Demo:
         return
 
 
+class CarProgram(IntEnum):
+    idle = 0
+    turn_back = 1
+    obstacle = 2
+    reverse = 3
+
+
 class Idle:
     pass
 
