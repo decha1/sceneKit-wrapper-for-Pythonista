@@ -156,7 +156,7 @@ class Demo:
                 volume=0.5,
             ),
         ]
-        self.cars = [Car(world=self, props=car_props) for car_props in cars_properties]
+        self.cars = [Car(world=self, props=cp) for cp in cars_properties]
         # ---------------------------------------------------------------------------
 
         # ---------------------------------------------------------------------------
@@ -178,22 +178,19 @@ class Demo:
 
         # ---------------------------------------------------------------------------
         # Roadblocks
-        self.road_blocks_node = scn.Node()
-        self.road_blocks = []
+        self.roadblocks = []
 
-        self.road_blocks.append(
-            RoadBlock(w=1.6, l=25, name="block 0", position=(28, 6))
+        self.roadblocks.append(Roadblock(w=1.6, l=25, name="block 0", position=(28, 6)))
+        self.roadblocks.append(
+            Roadblock(w=20, l=1.6, name="block 1", position=(-2, -12))
         )
-        self.road_blocks.append(
-            RoadBlock(w=20, l=1.6, name="block 1", position=(-2, -12))
-        )
-        self.road_blocks.append(
-            RoadBlock(
+        self.roadblocks.append(
+            Roadblock(
                 w=8, l=1.6, name="block 2", position=(-10, 6), rotation=-math.pi / 6
             )
         )
-        self.road_blocks.append(
-            RoadBlock(
+        self.roadblocks.append(
+            Roadblock(
                 w=40,
                 l=1.6,
                 name="block 3",
@@ -201,16 +198,19 @@ class Demo:
                 rotation=-math.pi / 3,
             )
         )
-        self.road_blocks.append(
-            RoadBlock(w=0.8, h=3, l=0.8, name="start", position=(0, 0))
+        self.roadblocks.append(
+            Roadblock(w=0.8, h=3, l=0.8, name="start", position=(0, 0))
         )
 
-        for aBlock in self.road_blocks:
-            self.road_blocks_node.addChildNode(aBlock.block_node)
-
-        self.root_node.addChildNode(self.road_blocks_node)
+        # roadblocks_node  (doesn't seem to be used in program, consider removal)
+        self.roadblocks_node = scn.Node()
+        for roadblock in self.roadblocks:
+            self.roadblocks_node.addChildNode(roadblock.node)
+        self.root_node.addChildNode(self.roadblocks_node)
         # ---------------------------------------------------------------------------
 
+        # ---------------------------------------------------------------------------
+        # camera
         self.camera_node = scn.Node()
         self.camera_node.camera = scn.Camera()
         self.camera_node.camera.zFar = 150
@@ -334,13 +334,13 @@ class Demo:
 
 
 class CarProgram(IntEnum):
-    idle = 0
+    forward = 0
     turn_back = 1
     obstacle = 2
     reverse = 3
 
 
-class Idle:
+class Forward:
     def __init__(self, car):
         self.desired_speed_kmh = random.gauss(40, 5)
         self.steering = Steering(
@@ -525,7 +525,7 @@ class Steering:
 
 
 class Car:
-    programs = [Idle, Turn_back, Obstacle, Reverse]
+    programs = [Forward, Turn_back, Obstacle, Reverse]
 
     def __init__(self, world=None, props={}):
         self.world = world
@@ -539,7 +539,7 @@ class Car:
         self.name = props.pop("name", "car")
         self.chassis_node.name = self.name
         self.program_table = [aProg(self) for aProg in Car.programs]
-        self.current_program = CarProgram.idle
+        self.current_program = CarProgram.forward
         self.program_stack = [self.current_program]
         self.brake_light = False
         self.too_far = props.pop("too_far", 30)
@@ -1111,24 +1111,24 @@ class Sparks:
         self.particleSystem.birthDirection = scn.ParticleBirthDirection.Random
 
 
-class RoadBlock:
-    block_material = scn.Material()
-    block_material.diffuse.contents = (0.91, 0.91, 0.91)
-    block_material.specular.contents = (0.88, 0.88, 0.88)
+class Roadblock:
+    material = scn.Material()
+    material.diffuse.contents = (0.91, 0.91, 0.91)
+    material.specular.contents = (0.88, 0.88, 0.88)
 
     def __init__(
-        self, w=1.0, h=1.8, l=2.0, name="block", position=(0.0, 0.0), rotation=0.0
+        self, w=1.0, h=1.8, l=2.0, name="roadblock", position=(0.0, 0.0), rotation=0.0
     ):
-        self.block = scn.Box(w, h, l, 0.1)
-        self.block.firstMaterial = RoadBlock.block_material
-        self.block_node = scn.Node.nodeWithGeometry(self.block)
-        self.block_node.name = name
-        self.block_node.position = (
+        geometry = scn.Box(w, h, l, 0.1)
+        geometry.firstMaterial = Roadblock.material
+        self.node = scn.Node.nodeWithGeometry(geometry)
+        self.node.name = name
+        self.node.position = (
             position if len(position) == 3 else (position[0], h / 2 - 0.2, position[1])
         )
-        self.block_node.rotation = (0, 1, 0, rotation)
-        self.block_node.physicsBody = scn.PhysicsBody.staticBody()
-        self.block_node.physicsBody.contactTestBitMask = (
+        self.node.rotation = (0, 1, 0, rotation)
+        self.node.physicsBody = scn.PhysicsBody.staticBody()
+        self.node.physicsBody.contactTestBitMask = (
             scn.PhysicsCollisionCategory.Default.value
         )
 
