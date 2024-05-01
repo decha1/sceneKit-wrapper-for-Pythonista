@@ -239,13 +239,13 @@ class Demo:
 
         self.scene_view.pointOfView = self.camera_node
 
-        self.is_close_clicked = False
+        self.is_close_button_clicked = False
         self.is_shutting_down = False
         self.main_view.add_subview(self.close_button)
         self.main_view.present(style="fullscreen", hide_title_bar=(not DEBUG))
 
     def close(self, sender):
-        self.is_close_clicked = True
+        self.is_close_button_clicked = True
         self.main_view.remove_subview(self.close_button)
 
     def shut_down(self):
@@ -256,7 +256,7 @@ class Demo:
 
     def update(self, view, atTime):
         print("update")
-        if self.is_close_clicked:
+        if self.is_close_button_clicked:
             if not self.is_shutting_down:
                 self.shut_down()
             return
