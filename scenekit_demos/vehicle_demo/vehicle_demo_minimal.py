@@ -261,25 +261,33 @@ class Demo:
                 self.shut_down()
             return
 
-        cx, cz, node_dist = 0.0, 0.0, 99999999999.0
-        camPos = self.camera_node.position
-        for aCar in self.cars:
-            aCar.current_speed = abs(aCar.vehicle.speedInKilometersPerHour)
-            aCar.node = aCar.chassis_node.presentationNode
-            aCar.position = aCar.node.position
-            cx += aCar.position.x
-            cz += aCar.position.z
-            node_dist = min(node_dist, abs(aCar.position.z - camPos.z))
+        cumulative_car_x
+        cumulative_car_z
+        car_camera_min_z_distance = 0.0, 0.0, 99999999999.0
+
+        camera_position = self.camera_node.position
+
+        for car in self.cars:
+            # set frequently used lookup items to a local variable of the car object ?
+            car.current_speed = abs(car.vehicle.speedInKilometersPerHour)
+            car.node = car.chassis_node.presentationNode
+            car.position = car.node.position
+
+            cumulative_car_x += car.position.x
+            cumulative_car_z += car.position.z
+            car_camera_min_z_distance = min(
+                car_camera_min_z_distance, abs(car.position.z - camera_position.z)
+            )
 
             if (
-                aCar.current_program == CarProgram.reverse
-                or aCar.current_program == CarProgram.obstacle
+                car.current_program == CarProgram.reverse
+                or car.current_program == CarProgram.obstacle
             ):
                 pass
             else:
                 obstacles = list(
                     view.nodesInsideFrustumWithPointOfView(
-                        aCar.camera_node.presentationNode
+                        car.camera_node.presentationNode
                     )
                 )
                 try:
@@ -287,26 +295,44 @@ class Demo:
                 except ValueError:
                     pass
                 if len(obstacles) > 0:
-                    aCar.setProgram(CarProgram.obstacle)
+                    car.setProgram(CarProgram.obstacle)
 
-                elif length(aCar.position) > random.uniform(
-                    aCar.too_far, aCar.too_far + 30
+                elif length(car.position) > random.uniform(
+                    car.too_far, car.too_far + 30
                 ):
-                    aCar.setProgram(CarProgram.turn_back)
+                    car.setProgram(CarProgram.turn_back)
 
-            aCar.move(view, atTime)
+            car.move()
 
-        self.camera_node.lookAt((cx / len(self.cars), camPos.y, cz / len(self.cars)))
+        self.camera_node.lookAt(
+            (
+                cumulative_car_x / len(self.cars),
+                camera_position.y,
+                cumulative_car_z / len(self.cars),
+            )
+        )
         if sum(
             1
             for aCar in self.cars
             if view.isNodeInsideFrustum(aCar.node, self.camera_node)
         ) < len(self.cars):
-            self.camera_node.position = (camPos.x, camPos.y, camPos.z + 0.1)
-        elif node_dist < 15:
-            self.camera_node.position = (camPos.x, camPos.y, camPos.z + 0.05)
-        elif node_dist > 35:
-            self.camera_node.position = (camPos.x, camPos.y, camPos.z - 0.03)
+            self.camera_node.position = (
+                camera_position.x,
+                camera_position.y,
+                camera_position.z + 0.1,
+            )
+        elif car_camera_min_z_distance < 15:
+            self.camera_node.position = (
+                camera_position.x,
+                camera_position.y,
+                camera_position.z + 0.05,
+            )
+        elif car_camera_min_z_distance > 35:
+            self.camera_node.position = (
+                camera_position.x,
+                camera_position.y,
+                camera_position.z - 0.03,
+            )
 
     def didBeginContact(self, aWorld, aContact):
         key = frozenset([aContact.nodeA, aContact.nodeB])
@@ -349,7 +375,7 @@ class Forward:
         )
         self.car = weakref.ref(car)()
 
-    def move(self, view, atTime):
+    def move(self):
         angle = self.steering.nextSteeringAngle(bounce=True)
         desired_speed_kmh = (
             0.5
@@ -370,7 +396,7 @@ class Turn_back:
         self.steering = Steering()
         self.car = weakref.ref(car)()
 
-    def move(self, view, atTime):
+    def move(self):
         if length(self.car.position) > self.release * self.car.too_far:
             angle = self.steering.nextSteeringAngle(bounce=False)
             desired_speed_kmh = (
@@ -402,7 +428,7 @@ class Obstacle:
         self.steering = Steering()
         self.car = weakref.ref(car)()
 
-    def move(self, view, atTime):
+    def move(self):
         min_dist, dir, carFlag = self.car.scan()
         if (min_dist < 4.0 and ~carFlag) or (min_dist < 8.0 and carFlag):
             self.car.setProgram(CarProgram.reverse)
@@ -428,7 +454,7 @@ class Reverse:
         self.car = weakref.ref(car)()
         self.counter = 0
 
-    def move(self, view, atTime):
+    def move(self):
         if DEBUG:
             self.car.world.setStatus()
         if self.counter == 0:  # init
@@ -547,8 +573,8 @@ class Car:
         self.node = self.chassis_node
         self.position = self.chassis_node.position
 
-    def move(self, view, atTime):
-        self.program_table[self.current_program].move(view, atTime)
+    def move(self):
+        self.program_table[self.current_program].move()
 
     def scan(self, rays=15):
         dret, dir, car = 999999999999.0, -1, False
