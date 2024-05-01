@@ -261,9 +261,9 @@ class Demo:
                 self.shut_down()
             return
 
-        cumulative_car_x
-        cumulative_car_z
-        car_camera_min_z_distance = 0.0, 0.0, 99999999999.0
+        cumulative_car_x = 0.0
+        cumulative_car_z = 0.0
+        car_camera_min_z_distance = 99999999999.0
 
         camera_position = self.camera_node.position
 
