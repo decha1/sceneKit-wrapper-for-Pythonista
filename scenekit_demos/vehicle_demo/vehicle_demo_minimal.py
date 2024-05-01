@@ -308,6 +308,30 @@ class Demo:
         elif node_dist > 35:
             self.camera_node.position = (camPos.x, camPos.y, camPos.z - 0.03)
 
+    def didBeginContact(self, aWorld, aContact):
+        key = frozenset([aContact.nodeA, aContact.nodeB])
+        if self.free_flags and key not in self.used_flags:
+            flag_node = self.free_flags.pop()
+            self.used_flags[key] = flag_node
+            contactPoint = aContact.contactPoint
+            flag_node.position = (contactPoint.x, contactPoint.y, contactPoint.z)
+            flag_node.addParticleSystem(self.crash)
+            flag_node.runAction(self.crash_action)
+
+    def didUpdateContact(self, aWorld, aContact):
+        key = frozenset([aContact.nodeA, aContact.nodeB])
+        if key in self.used_flags:
+            flag_node = self.used_flags[key]
+            contactPoint = aContact.contactPoint
+            flag_node.position = (contactPoint.x, contactPoint.y, contactPoint.z)
+
+    def didEndContact(self, aWorld, aContact):
+        key = frozenset([aContact.nodeA, aContact.nodeB])
+        if key in self.used_flags:
+            flag_node = self.used_flags.pop(key)
+            flag_node.removeAllParticleSystems()
+            self.free_flags.append(flag_node)
+
 
 class CarProgram(IntEnum):
     idle = 0
@@ -318,22 +342,186 @@ class CarProgram(IntEnum):
 
 class Idle:
     def __init__(self, car):
-        pass
+        self.desired_speed_kmh = random.gauss(40, 5)
+        self.steering = Steering(
+            [-Steering.max_steering for i in range(int(Steering.steps / 5))],
+            [Steering.max_steering for i in range(int(Steering.steps / 5))],
+        )
+        self.car = weakref.ref(car)()
+
+    def move(self, view, atTime):
+        angle = self.steering.nextSteeringAngle(bounce=True)
+        desired_speed_kmh = (
+            0.5
+            * self.desired_speed_kmh
+            * (1 + (Steering.max_steering - abs(angle)) / Steering.max_steering)
+        )
+        self.car.control(angle, desired_speed_kmh)
+
+    def activate(self, current_angle):
+        self.steering.setToAngle(
+            current_angle, random.choice([-1, 1]) * random.randint(1, 3)
+        )
 
 
 class Turn_back:
     def __init__(self, car):
-        pass
+        self.desired_speed_kmh = 45
+        self.steering = Steering()
+        self.car = weakref.ref(car)()
+
+    def move(self, view, atTime):
+        if length(self.car.position) > self.release * self.car.too_far:
+            angle = self.steering.nextSteeringAngle(bounce=False)
+            desired_speed_kmh = (
+                0.5
+                * self.desired_speed_kmh
+                * (1 + (Steering.max_steering - abs(angle)) / Steering.max_steering)
+            )
+            self.car.control(angle, desired_speed_kmh)
+        else:
+            self.steering.steering_dir *= -1
+            self.car.popProgram()
+
+    def activate(self, current_angle):
+        self.release = random.uniform(0.6, 2.0)
+        self.home = (random.uniform(-60, 40), random.uniform(-30, 50))
+        v, p = self.car.physicsBody.velocity, self.car.position
+        vel = (v.x, v.z)
+        pos = (p.x - self.home[0], p.z - self.home[1])
+        angle_math = math.atan2(det2(pos, vel), dot(pos, vel))
+        self.steering.steering_dir = (
+            5 if angle_math < self.steering.currentSteeringAngle else -5
+        )
+        self.steering.setToAngle(current_angle, self.steering.steering_dir)
 
 
 class Obstacle:
     def __init__(self, car):
-        pass
+        self.desired_speed_kmh = 15
+        self.steering = Steering()
+        self.car = weakref.ref(car)()
+
+    def move(self, view, atTime):
+        min_dist, dir, carFlag = self.car.scan()
+        if (min_dist < 4.0 and ~carFlag) or (min_dist < 8.0 and carFlag):
+            self.car.setProgram(CarProgram.reverse)
+        elif min_dist > 15:
+            self.car.popProgram()
+        elif min_dist < 8:
+            self.steering.steering_dir = -9 * dir
+        else:
+            self.steering.steering_dir *= -1
+        angle = self.steering.nextSteeringAngle(bounce=False)
+        self.car.control(angle, self.desired_speed_kmh)
+
+    def activate(self, current_angle):
+        self.steering.setToAngle(current_angle, 1)
 
 
 class Reverse:
+    activeSlot = MAXACTIVEREVERSE
+
     def __init__(self, car):
-        pass
+        self.desired_speed_kmh = 10.0
+        self.steering = Steering()
+        self.car = weakref.ref(car)()
+        self.counter = 0
+
+    def move(self, view, atTime):
+        if DEBUG:
+            self.car.world.setStatus()
+        if self.counter == 0:  # init
+            self.counter = 1
+            self.car.stop(self.steering.nextSteeringAngle(bounce=False))
+        elif self.counter == 1:  # stop
+            if self.car.current_speed < 0.2 and Reverse.activeSlot > 0:
+                self.steering.steering_dir *= -1
+                Reverse.activeSlot -= 1
+                self.counter = 2
+            else:
+                self.car.stop(self.steering.nextSteeringAngle(bounce=False))
+        elif self.counter == 2:  # reverse
+            min_front_dst, dir, carFrontFlag = self.car.scan()
+            min_rear_dst, carRearFlag = self.car.back_scan()
+            if (
+                min_rear_dst < 2.0
+                or (min_front_dst > 8 and dist(self.car.position, self.entry_position))
+                > 2
+            ):
+                self.steering.steering_dir *= -1
+                self.counter = 3
+            else:
+                angle = self.steering.nextSteeringAngle(bounce=False)
+                self.car.control(angle, 0.5 * self.desired_speed_kmh, reverse=True)
+        elif self.counter == 3:  # stop
+            if self.car.current_speed < 0.2:
+                self.counter = 4
+            else:
+                self.car.stop(self.steering.nextSteeringAngle(bounce=False))
+        elif self.counter == 4:  # forward
+            min_front_dst, dir, carFrontFlag = self.car.scan()
+            if min_front_dst > 20 and dist(self.car.position, self.entry_position) > 5:
+                Reverse.activeSlot += 1
+                self.car.popProgram()
+            elif min_front_dst < 3:
+                self.counter = 1
+                Reverse.activeSlot += 1
+            else:
+                self.car.control(
+                    self.steering.nextSteeringAngle(bounce=False),
+                    self.desired_speed_kmh,
+                )
+
+    def activate(self, current_angle):
+        self.steering.steering_dir = int(math.copysign(10, current_angle))
+        self.entry_position = self.car.position
+        self.counter = 0
+        self.steering.setToAngle(current_angle, self.steering.steering_dir)
+
+
+class Steering:
+    max_steering = math.pi / 9
+    steps = 7 * 30
+
+    def __init__(self, lead=[], tail=[]):
+        self.steering_angles = (
+            lead
+            + [
+                -Steering.max_steering + i * Steering.max_steering / Steering.steps
+                for i in range(2 * Steering.steps + 1)
+            ]
+            + tail
+        )
+        self.steering_lead = len(lead)
+        self.steering_neutral = self.steering_lead + Steering.steps
+        self.steering_current = self.steering_neutral
+        self.steering_dir = 1
+
+    def nextSteeringAngle(self, bounce=True):
+        next = self.steering_current + self.steering_dir
+        if next > len(self.steering_angles) - 1:
+            if bounce:
+                self.steering_dir = -1
+            return self.steering_angles[-1]
+        elif next < 0:
+            if bounce:
+                self.steering_dir = 1
+            return self.steering_angles[0]
+        else:
+            self.steering_current = next
+            return self.steering_angles[next]
+
+    def setToAngle(self, angle, direction):
+        for i in range(self.steering_lead, len(self.steering_angles)):
+            if self.steering_angles[i] > angle:
+                break
+        self.steering_current = i
+        self.steering_dir = direction
+
+    @property
+    def currentSteeringAngle(self):
+        return self.steering_angles[self.steering_current]
 
 
 class Car:
