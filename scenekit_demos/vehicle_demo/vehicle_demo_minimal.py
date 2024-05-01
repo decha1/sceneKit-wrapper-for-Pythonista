@@ -498,27 +498,7 @@ class Car:
         self.tire_node.rotation = (0, 0, 1, math.pi / 2)
         self.wheel_nodes[0].addChildNode(self.tire_node)
 
-        self.trace = scn.ParticleSystem()
-        self.trace.birthRate = 750
-        self.trace.loops = True
-        self.trace.emissionDuration = 0.1
-        self.trace.particleLifeSpan = 4.6
-        self.trace.particleLifeSpanVariation = 5
-        self.trace.particleSize = 0.02
-        self.trace.particleColor = (0.1, 0.1, 0.1, 1.0)
-        self.trace.particleColorVariation = (0.1, 0.1, 0.1, 0.1)
-        self.trace.blendMode = scn.ParticleBlendMode.Replace
-        self.trace.emitterShape = scn.Cylinder(0.02, 0.26)
-        self.trace.birthLocation = (
-            scn.ParticleBirthLocation.SCNParticleBirthLocationVolume
-        )
-        self.trace.handle(
-            scn.ParticleEvent.Birth,
-            [scn.ParticlePropertyPosition],
-            self.traceParticleEventBlock,
-        )
-
-        self.tire_node.addParticleSystem(self.trace)
+        self.tire_node.addParticleSystem(self.tire_tracks)
 
         self.rim = scn.Cylinder(0.14, 0.1)
         self.rim.firstMaterial.diffuse.contents = "gray"
@@ -607,8 +587,30 @@ class Car:
             self.sound_player = scn.AudioPlayer.audioPlayerWithSource(self.sound)
             self.chassis_node.addAudioPlayer(self.sound_player)
 
-    def traceParticleEventBlock(self, propValues, prop, particleIndex):
-        propValues[1] = 0.0
+        # ---------------------------------------------------------
+        # Tire tracks (i.e. the track left behind by car's wheels)
+        self.tire_tracks = scn.ParticleSystem()
+        self.tire_tracks.birthRate = 750
+        self.tire_tracks.loops = True
+        self.tire_tracks.emissionDuration = 0.1
+        self.tire_tracks.particleLifeSpan = 4.6
+        self.tire_tracks.particleLifeSpanVariation = 5
+        self.tire_tracks.particleSize = 0.02
+        self.tire_tracks.particleColor = (0.1, 0.1, 0.1, 1.0)
+        self.tire_tracks.particleColorVariation = (0.1, 0.1, 0.1, 0.1)
+        self.tire_tracks.blendMode = scn.ParticleBlendMode.Replace
+        self.tire_tracks.emitterShape = scn.Cylinder(0.02, 0.26)
+        self.tire_tracks.birthLocation = (
+            scn.ParticleBirthLocation.SCNParticleBirthLocationVolume
+        )
+        self.tire_tracks.handle(
+            scn.ParticleEvent.Birth,
+            [scn.ParticlePropertyPosition],
+            self.tire_tracks_particle_event_handler,
+        )
+
+    def tire_tracks_particle_event_handler(self, propValues, prop, particleIndex):
+        propValues[1] = 0.0  # set y to 0 ?
 
 
 class Sparks:
