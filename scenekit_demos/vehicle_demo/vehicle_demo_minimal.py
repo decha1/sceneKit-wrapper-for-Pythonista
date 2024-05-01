@@ -160,20 +160,20 @@ class Demo:
         # ---------------------------------------------------------------------------
 
         # ---------------------------------------------------------------------------
-        # Flags
-        self.free_flags = []
+        # Crash nodes
+        self.free_crash_nodes = []
         for i in range(2 * len(self.cars)):
             node = scn.Node()
-            self.free_flags.append(node)
+            self.free_crash_nodes.append(node)
             self.root_node.addChildNode(node)
-        self.used_flags = {}
+        self.in_use_crash_nodes = {}
         # ---------------------------------------------------------------------------
 
         # ---------------------------------------------------------------------------
-        # Sparks
-        self.crash = Sparks().particleSystem
-        self.crash_sound = scn.AudioSource("game:Crashing")
-        self.crash_action = scn.Action.playAudioSource(self.crash_sound, False)
+        # Crash sparks and sound
+        self.crash_sparks = Sparks().particleSystem
+        crash_sound = scn.AudioSource("game:Crashing")
+        self.crash_play_sound = scn.Action.playAudioSource(crash_sound, False)
         # ---------------------------------------------------------------------------
 
         # ---------------------------------------------------------------------------
@@ -250,7 +250,7 @@ class Demo:
 
     def shut_down(self):
         self.is_shutting_down = True
-        self.crash = None
+        self.crash_sparks = None
         print("before close")
         self.main_view.close()
 
@@ -311,11 +311,15 @@ class Demo:
                 cumulative_car_z / len(self.cars),
             )
         )
-        if sum(
-            1
-            for aCar in self.cars
-            if view.isNodeInsideFrustum(aCar.node, self.camera_node)
-        ) < len(self.cars):
+        if (
+            len(
+                [
+                    view.isNodeInsideFrustum(car.node, self.camera_node)
+                    for car in self.cars
+                ]
+            )
+            < len(self.cars) - 1
+        ):
             self.camera_node.position = (
                 camera_position.x,
                 camera_position.y,
@@ -334,29 +338,29 @@ class Demo:
                 camera_position.z - 0.03,
             )
 
-    def didBeginContact(self, aWorld, aContact):
-        key = frozenset([aContact.nodeA, aContact.nodeB])
-        if self.free_flags and key not in self.used_flags:
-            flag_node = self.free_flags.pop()
-            self.used_flags[key] = flag_node
-            contactPoint = aContact.contactPoint
-            flag_node.position = (contactPoint.x, contactPoint.y, contactPoint.z)
-            flag_node.addParticleSystem(self.crash)
-            flag_node.runAction(self.crash_action)
+    def didBeginContact(self, world, contact):
+        key = frozenset([contact.nodeA, contact.nodeB])
+        if self.free_crash_nodes and key not in self.in_use_crash_nodes:
+            crash_node = self.free_crash_nodes.pop()
+            self.in_use_crash_nodes[key] = crash_node
+            contact_point = contact.contactPoint
+            crash_node.position = (contact_point.x, contact_point.y, contact_point.z)
+            crash_node.addParticleSystem(self.crash_sparks)
+            crash_node.runAction(self.crash_play_sound)
 
-    def didUpdateContact(self, aWorld, aContact):
-        key = frozenset([aContact.nodeA, aContact.nodeB])
-        if key in self.used_flags:
-            flag_node = self.used_flags[key]
-            contactPoint = aContact.contactPoint
-            flag_node.position = (contactPoint.x, contactPoint.y, contactPoint.z)
+    def didUpdateContact(self, world, contact):
+        key = frozenset([contact.nodeA, contact.nodeB])
+        if key in self.in_use_crash_nodes:
+            crash_node = self.in_use_crash_nodes[key]
+            contact_point = contact.contactPoint
+            crash_node.position = (contact_point.x, contact_point.y, contact_point.z)
 
-    def didEndContact(self, aWorld, aContact):
-        key = frozenset([aContact.nodeA, aContact.nodeB])
-        if key in self.used_flags:
-            flag_node = self.used_flags.pop(key)
-            flag_node.removeAllParticleSystems()
-            self.free_flags.append(flag_node)
+    def didEndContact(self, world, contact):
+        key = frozenset([contact.nodeA, contact.nodeB])
+        if key in self.in_use_crash_nodes:
+            crash_node = self.in_use_crash_nodes.pop(key)
+            crash_node.removeAllParticleSystems()
+            self.free_crash_nodes.append(crash_node)
 
 
 class CarProgram(IntEnum):
