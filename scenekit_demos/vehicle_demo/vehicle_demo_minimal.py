@@ -538,8 +538,6 @@ class Car:
         self.tire_node.rotation = (0, 0, 1, math.pi / 2)
         self.wheel_nodes[0].addChildNode(self.tire_node)
 
-        self.tire_node.addParticleSystem(self.tire_tracks)
-
         self.rim = scn.Cylinder(0.14, 0.1)
         self.rim.firstMaterial.diffuse.contents = "gray"
         self.rim.firstMaterial.specular.contents = (0.88, 0.88, 0.88)
@@ -648,6 +646,8 @@ class Car:
             [scn.ParticlePropertyPosition],
             self.tire_tracks_particle_event_handler,
         )
+        self.tire_node.addParticleSystem(self.tire_tracks)
+        # ---------------------------------------------------------
 
     def tire_tracks_particle_event_handler(self, propValues, prop, particleIndex):
         propValues[1] = 0.0  # set y to 0 ?
