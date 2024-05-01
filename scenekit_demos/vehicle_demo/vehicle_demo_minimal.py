@@ -270,19 +270,23 @@ class CarProgram(IntEnum):
 
 
 class Idle:
-    pass
+    def __init__(self, car):
+        pass
 
 
 class Turn_back:
-    pass
+    def __init__(self, car):
+        pass
 
 
 class Obstacle:
-    pass
+    def __init__(self, car):
+        pass
 
 
 class Reverse:
-    pass
+    def __init__(self, car):
+        pass
 
 
 class Car:
