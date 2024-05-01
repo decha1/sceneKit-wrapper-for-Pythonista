@@ -262,7 +262,25 @@ class Demo:
         return
 
 
+class Idle:
+    pass
+
+
+class Turn_back:
+    pass
+
+
+class Obstacle:
+    pass
+
+
+class Reverse:
+    pass
+
+
 class Car:
+    programs = [Idle, Turn_back, Obstacle, Reverse]
+
     def __init__(self, world=None, props={}):
         self.world = world
         self.physics_world = world.physics_world
@@ -271,6 +289,17 @@ class Car:
             sound_file=props.pop("sound", "casino:DiceThrow2"),
             sound_volume=props.pop("volume", 1.0),
         )
+        self.chassis_node.position = props.pop("position", (0, 0, 0))
+        self.name = props.pop("name", "car")
+        self.chassis_node.name = self.name
+        self.program_table = [aProg(self) for aProg in Car.programs]
+        self.current_program = CarProgram.idle
+        self.program_stack = [self.current_program]
+        self.brake_light = False
+        self.too_far = props.pop("too_far", 30)
+        self.current_speed = 0
+        self.node = self.chassis_node
+        self.position = self.chassis_node.position
 
     def buildCar(self, body_color=None, sound_file=None, sound_volume=1.0):
         self.chassis_node = scn.Node()
