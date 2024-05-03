@@ -373,23 +373,24 @@ class CarProgram(IntEnum):
 class Forward:
     def __init__(self, car):
         self.desired_speed_kmh = random.gauss(40, 5)
-        self.steering = Steering(
-            [-Steering.max_steering for i in range(int(Steering.steps / 5))],
-            [Steering.max_steering for i in range(int(Steering.steps / 5))],
-        )
+        self.steering = Steering()
         self.car = weakref.ref(car)()
 
     def move(self):
-        angle = self.steering.nextSteeringAngle(bounce=True)
+        angle = self.steering.next_steering_angle(bounce=True)
         desired_speed_kmh = (
             0.5
             * self.desired_speed_kmh
-            * (1 + (Steering.max_steering - abs(angle)) / Steering.max_steering)
+            * (
+                1
+                + (Steering.MAX_STEERING_ANGLE - abs(angle))
+                / Steering.MAX_STEERING_ANGLE
+            )
         )
         self.car.control(angle, desired_speed_kmh)
 
     def activate(self, current_angle):
-        self.steering.setToAngle(
+        self.steering.set_to_angle(
             current_angle, random.choice([-1, 1]) * random.randint(1, 3)
         )
 
@@ -402,15 +403,19 @@ class Turn_back:
 
     def move(self):
         if length(self.car.position) > self.release * self.car.too_far:
-            angle = self.steering.nextSteeringAngle(bounce=False)
+            angle = self.steering.next_steering_angle(bounce=False)
             desired_speed_kmh = (
                 0.5
                 * self.desired_speed_kmh
-                * (1 + (Steering.max_steering - abs(angle)) / Steering.max_steering)
+                * (
+                    1
+                    + (Steering.MAX_STEERING_ANGLE - abs(angle))
+                    / Steering.MAX_STEERING_ANGLE
+                )
             )
             self.car.control(angle, desired_speed_kmh)
         else:
-            self.steering.steering_dir *= -1
+            self.steering.steering_automatic_turn_direction *= -1
             self.car.popProgram()
 
     def activate(self, current_angle):
@@ -420,10 +425,12 @@ class Turn_back:
         vel = (v.x, v.z)
         pos = (p.x - self.home[0], p.z - self.home[1])
         angle_math = math.atan2(det2(pos, vel), dot(pos, vel))
-        self.steering.steering_dir = (
+        self.steering.steering_automatic_turn_direction = (
             5 if angle_math < self.steering.currentSteeringAngle else -5
         )
-        self.steering.setToAngle(current_angle, self.steering.steering_dir)
+        self.steering.set_to_angle(
+            current_angle, self.steering.steering_automatic_turn_direction
+        )
 
 
 class Obstacle:
@@ -439,14 +446,14 @@ class Obstacle:
         elif min_dist > 15:
             self.car.popProgram()
         elif min_dist < 8:
-            self.steering.steering_dir = -9 * dir
+            self.steering.steering_automatic_turn_direction = -9 * dir
         else:
-            self.steering.steering_dir *= -1
-        angle = self.steering.nextSteeringAngle(bounce=False)
+            self.steering.steering_automatic_turn_direction *= -1
+        angle = self.steering.next_steering_angle(bounce=False)
         self.car.control(angle, self.desired_speed_kmh)
 
     def activate(self, current_angle):
-        self.steering.setToAngle(current_angle, 1)
+        self.steering.set_to_angle(current_angle, 1)
 
 
 class Reverse:
@@ -463,14 +470,14 @@ class Reverse:
             self.car.world.setStatus()
         if self.counter == 0:  # init
             self.counter = 1
-            self.car.stop(self.steering.nextSteeringAngle(bounce=False))
+            self.car.stop(self.steering.next_steering_angle(bounce=False))
         elif self.counter == 1:  # stop
             if self.car.current_speed < 0.2 and Reverse.activeSlot > 0:
-                self.steering.steering_dir *= -1
+                self.steering.steering_automatic_turn_direction *= -1
                 Reverse.activeSlot -= 1
                 self.counter = 2
             else:
-                self.car.stop(self.steering.nextSteeringAngle(bounce=False))
+                self.car.stop(self.steering.next_steering_angle(bounce=False))
         elif self.counter == 2:  # reverse
             min_front_dst, dir, carFrontFlag = self.car.scan()
             min_rear_dst, carRearFlag = self.car.back_scan()
@@ -479,16 +486,16 @@ class Reverse:
                 or (min_front_dst > 8 and dist(self.car.position, self.entry_position))
                 > 2
             ):
-                self.steering.steering_dir *= -1
+                self.steering.steering_automatic_turn_direction *= -1
                 self.counter = 3
             else:
-                angle = self.steering.nextSteeringAngle(bounce=False)
+                angle = self.steering.next_steering_angle(bounce=False)
                 self.car.control(angle, 0.5 * self.desired_speed_kmh, reverse=True)
         elif self.counter == 3:  # stop
             if self.car.current_speed < 0.2:
                 self.counter = 4
             else:
-                self.car.stop(self.steering.nextSteeringAngle(bounce=False))
+                self.car.stop(self.steering.next_steering_angle(bounce=False))
         elif self.counter == 4:  # forward
             min_front_dst, dir, carFrontFlag = self.car.scan()
             if min_front_dst > 20 and dist(self.car.position, self.entry_position) > 5:
@@ -499,59 +506,75 @@ class Reverse:
                 Reverse.activeSlot += 1
             else:
                 self.car.control(
-                    self.steering.nextSteeringAngle(bounce=False),
+                    self.steering.next_steering_angle(bounce=False),
                     self.desired_speed_kmh,
                 )
 
     def activate(self, current_angle):
-        self.steering.steering_dir = int(math.copysign(10, current_angle))
+        self.steering.steering_automatic_turn_direction = int(
+            math.copysign(10, current_angle)
+        )
         self.entry_position = self.car.position
         self.counter = 0
-        self.steering.setToAngle(current_angle, self.steering.steering_dir)
+        self.steering.set_to_angle(
+            current_angle, self.steering.steering_automatic_turn_direction
+        )
 
 
 class Steering:
-    max_steering = math.pi / 9
-    steps = 7 * 30
+    class AutoTurnDirection(IntEnum):
+        LEFT = -1
+        RIGHT = 1
 
-    def __init__(self, lead=[], tail=[]):
+    def __init__(self, is_padded=False):
+        MAX_STEERING_ANGLE = math.pi / 9  # 20 degrees max left or right
+        MIDDLE_RANGE_STEPS = 7 * 30
+        LEFT_RIGHT_PADDING_STEPS = MIDDLE_RANGE_STEPS // 5
+
+        # more steps requires more time to go from full left to full right or vice versa
+        left_end_steering_angles = [-MAX_STEERING_ANGLE * LEFT_RIGHT_PADDING_STEPS]
+        right_end_steering_angles = [MAX_STEERING_ANGLE * LEFT_RIGHT_PADDING_STEPS]
+        middle_steering_angles = [
+            -MAX_STEERING_ANGLE + i * MAX_STEERING_ANGLE / MIDDLE_RANGE_STEPS
+            for i in range(2 * MIDDLE_RANGE_STEPS + 1)
+        ]
+
         self.steering_angles = (
-            lead
-            + [
-                -Steering.max_steering + i * Steering.max_steering / Steering.steps
-                for i in range(2 * Steering.steps + 1)
-            ]
-            + tail
+            left_end_steering_angles
+            + middle_steering_angles
+            + right_end_steering_angles
         )
-        self.steering_lead = len(lead)
-        self.steering_neutral = self.steering_lead + Steering.steps
-        self.steering_current = self.steering_neutral
-        self.steering_dir = 1
 
-    def nextSteeringAngle(self, bounce=True):
-        next = self.steering_current + self.steering_dir
-        if next > len(self.steering_angles) - 1:
-            if bounce:
-                self.steering_dir = -1
-            return self.steering_angles[-1]
-        elif next < 0:
-            if bounce:
-                self.steering_dir = 1
-            return self.steering_angles[0]
-        else:
-            self.steering_current = next
-            return self.steering_angles[next]
+        self.steering_left_padding_size = LEFT_RIGHT_PADDING_STEPS
+        self.steering_neutral_index = LEFT_RIGHT_PADDING_STEPS + MIDDLE_RANGE_STEPS
+        self.steering_max_index = 2 * LEFT_RIGHT_PADDING_STEPS + 2 * MIDDLE_RANGE_STEPS
+        self.steering_current_index = self.steering_neutral_index
+        self.steering_automatic_turn_direction = Steering.AutoTurnDirection.RIGHT
 
-    def setToAngle(self, angle, direction):
-        for i in range(self.steering_lead, len(self.steering_angles)):
+    def next_steering_angle(self, bounce=True):
+        new_index = self.steering_current_index + self.steering_automatic_turn_direction
+        if new_index == self.steering_max_index:
+            if bounce:
+                self.steering_automatic_turn_direction = Steering.AutoTurnDirection.LEFT
+        elif new_index == 0:
+            if bounce:
+                self.steering_automatic_turn_direction = (
+                    Steering.AutoTurnDirection.RIGHT
+                )
+
+        self.steering_current_index = new_index
+        return self.steering_angles[new_index]
+
+    def set_to_angle(self, angle, direction: AutoTurnDirection):
+        for i in range(self.steering_left_padding_size, self.steering_max_index):
             if self.steering_angles[i] > angle:
                 break
-        self.steering_current = i
-        self.steering_dir = direction
+        self.steering_current_index = i
+        self.steering_automatic_turn_direction = direction
 
     @property
     def currentSteeringAngle(self):
-        return self.steering_angles[self.steering_current]
+        return self.steering_angles[self.steering_current_index]
 
 
 class Car:
