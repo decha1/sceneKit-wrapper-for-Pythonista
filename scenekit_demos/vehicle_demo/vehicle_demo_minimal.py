@@ -563,10 +563,12 @@ class Steering:
 
     def next_steering_angle(self, bounce=True):
         new_index = self.steering_current_index + self.steering_automatic_turn_direction
-        if new_index == self.steering_max_index:
+        if new_index > self.steering_max_index:
+            new_index = self.steering_max_index
             if bounce:
                 self.steering_automatic_turn_direction = Steering.AutoTurnDirection.LEFT
-        elif new_index == 0:
+        elif new_index < 0:
+            new_index = 0
             if bounce:
                 self.steering_automatic_turn_direction = (
                     Steering.AutoTurnDirection.RIGHT
