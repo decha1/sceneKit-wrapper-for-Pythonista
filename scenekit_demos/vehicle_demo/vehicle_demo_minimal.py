@@ -522,21 +522,27 @@ class Reverse:
 
 
 class Steering:
+    MAX_STEERING_ANGLE = math.pi / 9  # 20 degrees max left or right
+    MIDDLE_RANGE_STEPS = 7 * 30
+    LEFT_RIGHT_END_STEPS = MIDDLE_RANGE_STEPS // 5
+
     class AutoTurnDirection(IntEnum):
         LEFT = -1
         RIGHT = 1
 
     def __init__(self, is_padded=False):
-        MAX_STEERING_ANGLE = math.pi / 9  # 20 degrees max left or right
-        MIDDLE_RANGE_STEPS = 7 * 30
-        LEFT_RIGHT_PADDING_STEPS = MIDDLE_RANGE_STEPS // 5
 
         # more steps requires more time to go from full left to full right or vice versa
-        left_end_steering_angles = [-MAX_STEERING_ANGLE * LEFT_RIGHT_PADDING_STEPS]
-        right_end_steering_angles = [MAX_STEERING_ANGLE * LEFT_RIGHT_PADDING_STEPS]
+        left_end_steering_angles = [
+            -Steering.MAX_STEERING_ANGLE * Steering.LEFT_RIGHT_END_STEPS
+        ]
+        right_end_steering_angles = [
+            Steering.MAX_STEERING_ANGLE * Steering.LEFT_RIGHT_END_STEPS
+        ]
         middle_steering_angles = [
-            -MAX_STEERING_ANGLE + i * MAX_STEERING_ANGLE / MIDDLE_RANGE_STEPS
-            for i in range(2 * MIDDLE_RANGE_STEPS + 1)
+            -Steering.MAX_STEERING_ANGLE
+            + i * Steering.MAX_STEERING_ANGLE / Steering.MIDDLE_RANGE_STEPS
+            for i in range(2 * Steering.MIDDLE_RANGE_STEPS + 1)
         ]
 
         self.steering_angles = (
@@ -545,9 +551,13 @@ class Steering:
             + right_end_steering_angles
         )
 
-        self.steering_left_padding_size = LEFT_RIGHT_PADDING_STEPS
-        self.steering_neutral_index = LEFT_RIGHT_PADDING_STEPS + MIDDLE_RANGE_STEPS
-        self.steering_max_index = 2 * LEFT_RIGHT_PADDING_STEPS + 2 * MIDDLE_RANGE_STEPS
+        self.steering_left_padding_size = Steering.LEFT_RIGHT_END_STEPS
+        self.steering_neutral_index = (
+            Steering.LEFT_RIGHT_END_STEPS + Steering.MIDDLE_RANGE_STEPS
+        )
+        self.steering_max_index = (
+            2 * Steering.LEFT_RIGHT_END_STEPS + 2 * Steering.MIDDLE_RANGE_STEPS
+        )
         self.steering_current_index = self.steering_neutral_index
         self.steering_automatic_turn_direction = Steering.AutoTurnDirection.RIGHT
 
