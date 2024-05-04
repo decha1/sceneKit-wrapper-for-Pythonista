@@ -525,24 +525,25 @@ class Steering:
     MAX_STEERING_ANGLE = math.pi / 9  # 20 degrees max left or right
     MIDDLE_RANGE_STEPS = 7 * 30
     LEFT_RIGHT_END_STEPS = MIDDLE_RANGE_STEPS // 5
-    NEUTRAL_INDEX = (LEFT_RIGHT_END_STEPS + MIDDLE_RANGE_STEPS + 1) - 1  # 0 based index
-    MAX_INDEX = (
-        2 * LEFT_RIGHT_END_STEPS + 2 * MIDDLE_RANGE_STEPS + 1
-    ) - 1  # 0 based index
 
     class AutoTurnDirection(IntEnum):
         LEFT = -1
         RIGHT = 1
 
     def __init__(self, is_padded=False):
+        if is_padded:
+            left_end_steering_angles = [
+                -Steering.MAX_STEERING_ANGLE
+            ] * Steering.LEFT_RIGHT_END_STEPS
 
-        # more steps requires more time to go from full left to full right or vice versa
-        left_end_steering_angles = [
-            -Steering.MAX_STEERING_ANGLE * Steering.LEFT_RIGHT_END_STEPS
-        ]
-        right_end_steering_angles = [
-            Steering.MAX_STEERING_ANGLE * Steering.LEFT_RIGHT_END_STEPS
-        ]
+            right_end_steering_angles = [
+                Steering.MAX_STEERING_ANGLE
+            ] * Steering.LEFT_RIGHT_END_STEPS
+
+        else:
+            left_end_steering_angles = []
+            right_end_steering_angles = []
+
         middle_steering_angles = [
             -Steering.MAX_STEERING_ANGLE
             + i * Steering.MAX_STEERING_ANGLE / Steering.MIDDLE_RANGE_STEPS
@@ -555,37 +556,65 @@ class Steering:
             + right_end_steering_angles
         )
 
-        assert len(self.steering_angles) == Steering.MAX_INDEX
+        self.max_index = len(self.steering_angles) - 1
+        self.neutral_index = self.max_index // 2
 
-        self.steering_current_index = Steering.NEUTRAL_INDEX
-        self.steering_automatic_turn_direction = Steering.AutoTurnDirection.RIGHT
+        print(self.max_index)
+        print(self.neutral_index)
+        print(self.LEFT_RIGHT_END_STEPS)
+        if is_padded:
+            assert (
+                self.max_index
+                == (
+                    2 * Steering.MIDDLE_RANGE_STEPS
+                    + 2 * Steering.LEFT_RIGHT_END_STEPS
+                    + 1
+                )
+                - 1
+            )
+
+            assert (
+                self.neutral_index
+                == Steering.MIDDLE_RANGE_STEPS + Steering.LEFT_RIGHT_END_STEPS
+            )
+            assert self.steering_angles[self.neutral_index] == 0
+
+        else:
+            assert self.max_index == (2 * Steering.MIDDLE_RANGE_STEPS + 1) - 1
+            assert self.neutral_index == (Steering.MIDDLE_RANGE_STEPS + 1) - 1
+            assert self.steering_angles[self.neutral_index] == 0
+
+        self.steering_neutral_index = (
+            Steering.MIDDLE_RANGE_STEPS + Steering.LEFT_RIGHT_END_STEPS
+        )
+
+        self.current_index = self.steering_neutral_index
+        self.automatic_turn_direction = Steering.AutoTurnDirection.RIGHT
 
     def next_steering_angle(self, bounce=True):
-        new_index = self.steering_current_index + self.steering_automatic_turn_direction
-        if new_index > Steering.MAX_INDEX:
-            new_index = Steering.MAX_INDEX
+        next_index = self.current_index + self.automatic_turn_direction
+        if next_index > self.max_index:
+            next_index = self.max_index
             if bounce:
-                self.steering_automatic_turn_direction = Steering.AutoTurnDirection.LEFT
-        elif new_index < 0:
-            new_index = 0
+                self.automatic_turn_direction = Steering.AutoTurnDirection.LEFT
+        elif next_index < 0:
+            next_index = 0
             if bounce:
-                self.steering_automatic_turn_direction = (
-                    Steering.AutoTurnDirection.RIGHT
-                )
+                self.automatic_turn_direction = Steering.AutoTurnDirection.RIGHT
 
-        self.steering_current_index = new_index
-        return self.steering_angles[new_index]
+        self.current_index = next_index
+        return self.steering_angles[next_index]
 
     def set_to_angle(self, angle, direction: AutoTurnDirection):
         for i in range(0, Steering.MAX_INDEX - 1):
             if self.steering_angles[i] > angle:
                 break
-        self.steering_current_index = i
-        self.steering_automatic_turn_direction = direction
+        self.current_index = i
+        self.automatic_turn_direction = direction
 
     @property
     def currentSteeringAngle(self):
-        return self.steering_angles[self.steering_current_index]
+        return self.steering_angles[self.current_index]
 
 
 class Car:
