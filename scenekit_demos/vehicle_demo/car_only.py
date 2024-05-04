@@ -502,5 +502,8 @@ class Car:
         self.tire_node.addParticleSystem(self.tire_tracks)
         # ---------------------------------------------------------
 
+    def tire_tracks_particle_event_handler(self, propValues, prop, particleIndex):
+        propValues[1] = 0.0  # set y to 0 ?
+
 
 Demo.run()
