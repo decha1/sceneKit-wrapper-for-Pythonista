@@ -486,19 +486,19 @@ class Car:
         # ---------------------------------------------------------
         # Tire tracks (i.e. the track left behind by car's wheels)
         self.tire_tracks = scn.ParticleSystem()
-        self.tire_tracks.birthRate = 750
-        self.tire_tracks.loops = True
-        self.tire_tracks.emissionDuration = 0.1
-        self.tire_tracks.particleLifeSpan = 4.6
-        self.tire_tracks.particleLifeSpanVariation = 5
-        self.tire_tracks.particleSize = 0.02
-        self.tire_tracks.particleColor = (0.1, 0.1, 0.1, 1.0)
-        self.tire_tracks.particleColorVariation = (0.1, 0.1, 0.1, 0.1)
-        self.tire_tracks.blendMode = scn.ParticleBlendMode.Replace
-        self.tire_tracks.emitterShape = scn.Cylinder(0.02, 0.26)
-        self.tire_tracks.birthLocation = (
-            scn.ParticleBirthLocation.SCNParticleBirthLocationVolume
-        )
+        # self.tire_tracks.birthRate = 750
+        # self.tire_tracks.loops = True
+        # self.tire_tracks.emissionDuration = 0.1
+        # self.tire_tracks.particleLifeSpan = 4.6
+        # self.tire_tracks.particleLifeSpanVariation = 5
+        # self.tire_tracks.particleSize = 0.02
+        # self.tire_tracks.particleColor = (0.1, 0.1, 0.1, 1.0)
+        # self.tire_tracks.particleColorVariation = (0.1, 0.1, 0.1, 0.1)
+        # self.tire_tracks.blendMode = scn.ParticleBlendMode.Replace
+        # self.tire_tracks.emitterShape = scn.Cylinder(0.02, 0.26)
+        # self.tire_tracks.birthLocation = (
+        #    scn.ParticleBirthLocation.SCNParticleBirthLocationVolume
+        # )
         self.tire_tracks.handle(
             scn.ParticleEvent.Birth,
             [scn.ParticlePropertyPosition],
