@@ -8,7 +8,16 @@ from enum import IntEnum
 import weakref
 import os
 
-WORLD_SPEED = 1.0
+DEBUG = False
+MAXCARS = 3  # max 5, set it lower for weaker devices
+ENGINESOUND = True  # set it to False for weaker devices or if too many cars
+MAXACTIVEREVERSE = 2
+
+UIDevice = ObjCClass("UIDevice")
+device = UIDevice.currentDevice()
+machine = os.uname().machine
+system_version = int(str(device.systemVersion()).split(".")[0])
+WORLD_SPEED = 1.0 if system_version >= 13 else 2.0
 
 
 class Demo:
