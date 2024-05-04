@@ -559,9 +559,6 @@ class Steering:
         self.max_index = len(self.steering_angles) - 1
         self.neutral_index = self.max_index // 2
 
-        print(self.max_index)
-        print(self.neutral_index)
-        print(self.LEFT_RIGHT_END_STEPS)
         if is_padded:
             assert (
                 self.max_index
