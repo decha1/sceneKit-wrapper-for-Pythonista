@@ -606,7 +606,7 @@ class Steering:
         return self.steering_angles[next_index]
 
     def set_to_angle(self, angle, direction: AutoTurnDirection):
-        for i in range(0, Steering.MAX_INDEX - 1):
+        for i in range(0, self.max_index - 1):
             if self.steering_angles[i] > angle:
                 break
         self.current_index = i
