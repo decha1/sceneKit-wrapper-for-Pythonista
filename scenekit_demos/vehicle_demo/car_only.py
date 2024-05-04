@@ -8,6 +8,11 @@ from enum import IntEnum
 import weakref
 import os
 
+import logging
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename="example.log", encoding="utf-8", level=logging.DEBUG)
+
 DEBUG = False
 MAXCARS = 3  # max 5, set it lower for weaker devices
 ENGINESOUND = True  # set it to False for weaker devices or if too many cars
@@ -499,6 +504,8 @@ class Car:
             [scn.ParticlePropertyPosition],
             self.tire_tracks_particle_event_handler,
         )
+
+        logger.debug("before")
         self.tire_node.addParticleSystem(self.tire_tracks)
         # ---------------------------------------------------------
 
