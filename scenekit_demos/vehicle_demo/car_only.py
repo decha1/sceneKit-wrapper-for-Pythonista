@@ -8,6 +8,8 @@ from enum import IntEnum
 import weakref
 import os
 
+WORLD_SPEED = 1.0
+
 
 class Demo:
     @classmethod
