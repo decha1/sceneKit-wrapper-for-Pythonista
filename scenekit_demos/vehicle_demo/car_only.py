@@ -145,74 +145,25 @@ class Demo:
 
 
 class Car:
-
-    def __init__(self, world=None):
+    def __init__(self, world=None, props={}):
         self.world = world
         self.physics_world = world.physics_world
         self.buildCar(
-            body_color=(0.6, 0.0, 0.0),
-            sound_file="casino:DiceThrow2",
-            sound_volume=1.0,
+            body_color=props.pop("body_color", (0.6, 0.0, 0.0)),
+            sound_file=props.pop("sound", "casino:DiceThrow2"),
+            sound_volume=props.pop("volume", 1.0),
         )
-        self.chassis_node.position = (0, 0, 0)
-        self.name = "car"
+        self.chassis_node.position = props.pop("position", (0, 0, 0))
+        self.name = props.pop("name", "car")
         self.chassis_node.name = self.name
-
+        # self.program_table = [aProg(self) for aProg in Car.programs]
+        # self.current_program = CarProgram.forward
+        # self.program_stack = [self.current_program]
         self.brake_light = False
-        self.too_far = 30
+        self.too_far = props.pop("too_far", 30)
         self.current_speed = 0
         self.node = self.chassis_node
         self.position = self.chassis_node.position
-
-    def control(self, angle=0, desired_speed_kmh=0, reverse=False):
-        multiplier = -1.2 if reverse else 1
-        self.vehicle.setSteeringAngle(angle, 0)
-        self.vehicle.setSteeringAngle(angle, 1)
-
-        self.camera_controller_node.rotation = (0, 1, 0, -angle / 2)
-
-        if self.current_speed < desired_speed_kmh:
-            self.vehicle.applyEngineForce(multiplier * 950, 0)
-            self.vehicle.applyEngineForce(multiplier * 950, 1)
-            self.vehicle.applyBrakingForce(0, 2)
-            self.vehicle.applyBrakingForce(0, 3)
-            self.brakeLights(on=False)
-            self.smoke.birthRate = 700 + (desired_speed_kmh - self.current_speed) ** 2.5
-        elif self.current_speed > 1.2 * desired_speed_kmh:
-            self.vehicle.applyEngineForce(0, 0)
-            self.vehicle.applyEngineForce(0, 1)
-            self.vehicle.applyBrakingForce(multiplier * 20, 2)
-            self.vehicle.applyBrakingForce(multiplier * 20, 3)
-            self.brakeLights(on=True)
-            self.smoke.birthRate = 0.0
-        else:
-            self.vehicle.applyEngineForce(0, 0)
-            self.vehicle.applyEngineForce(0, 1)
-            self.vehicle.applyBrakingForce(0, 2)
-            self.vehicle.applyBrakingForce(0, 3)
-            self.brakeLights(on=False)
-            self.smoke.birthRate = 0.0
-
-    def stop(self, angle=0):
-        factor = 30  # 60
-        self.vehicle.setSteeringAngle(angle, 0)
-        self.vehicle.setSteeringAngle(angle, 1)
-        self.vehicle.applyEngineForce(0, 0)
-        self.vehicle.applyEngineForce(0, 1)
-        self.vehicle.applyBrakingForce(factor, 2)
-        self.vehicle.applyBrakingForce(factor, 3)
-        self.brakeLights(on=True)
-        self.smoke.birthRate = 0.0
-
-        self.camera_controller_node.rotation = (0, 1, 0, -angle / 2)
-
-    def brakeLights(self, on=False):
-        if ~self.brake_light and on:
-            self.lampGlasBack.firstMaterial.emission.contents = self.lampBack_colors[1]
-            self.brake_light = True
-        elif self.brake_light and ~on:
-            self.lampGlasBack.firstMaterial.emission.contents = self.lampBack_colors[0]
-            self.brake_light = False
 
     def buildCar(self, body_color=None, sound_file=None, sound_volume=1.0):
         self.chassis_node = scn.Node()
@@ -519,7 +470,7 @@ class Car:
         self.physics_world.addBehavior(self.vehicle)
         self.world.root_node.addChildNode(self.chassis_node)
 
-        if True:
+        if ENGINESOUND:
             self.sound = scn.AudioSource(sound_file)
             self.sound.load()
             self.sound.loops = True
@@ -550,9 +501,6 @@ class Car:
         )
         self.tire_node.addParticleSystem(self.tire_tracks)
         # ---------------------------------------------------------
-
-    def tire_tracks_particle_event_handler(self, propValues, prop, particleIndex):
-        propValues[1] = 0.0  # set y to 0 ?
 
 
 Demo.run()
