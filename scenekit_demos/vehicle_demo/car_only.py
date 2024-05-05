@@ -482,7 +482,7 @@ class Car:
             self.sound.volume = sound_volume
             self.sound_player = scn.AudioPlayer.audioPlayerWithSource(self.sound)
             self.chassis_node.addAudioPlayer(self.sound_player)
-
+        """
         # ---------------------------------------------------------
         # Tire tracks (i.e. the track left behind by car's wheels)
         self.tire_tracks = scn.ParticleSystem()
@@ -507,6 +507,7 @@ class Car:
 
         logger.debug("before")
         self.tire_node.addParticleSystem(self.tire_tracks)
+        """
         # ---------------------------------------------------------
 
     def tire_tracks_particle_event_handler(self, propValues, prop, particleIndex):
