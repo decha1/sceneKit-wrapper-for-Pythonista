@@ -250,8 +250,17 @@ class Demo:
 
     def shut_down(self):
         self.is_shutting_down = True
-        self.crash_sparks = None
-        print("before close")
+
+        for aCar in self.cars:
+            aCar.smoker_node.removeAllParticleSystems()
+            aCar.tire_node.removeAllParticleSystems()
+            aCar.chassis_node.removeAllAudioPlayers()
+        for aNode in self.used_flags.values():
+            aNode.removeAllParticleSystems()
+            aNode.removeAllAudioPlayers()
+        self.physics_world.removeAllBehaviors()
+        self.scene_view.scene.paused = True
+        # self.scene_view.removeFromSuperview()
         self.main_view.close()
 
     def update(self, view, atTime):
