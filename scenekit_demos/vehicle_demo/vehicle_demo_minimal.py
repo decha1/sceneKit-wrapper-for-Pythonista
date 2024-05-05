@@ -255,7 +255,7 @@ class Demo:
             aCar.smoker_node.removeAllParticleSystems()
             aCar.tire_node.removeAllParticleSystems()
             aCar.chassis_node.removeAllAudioPlayers()
-        for aNode in self.used_flags.values():
+        for aNode in self.in_use_crash_nodes.values():
             aNode.removeAllParticleSystems()
             aNode.removeAllAudioPlayers()
         self.physics_world.removeAllBehaviors()
