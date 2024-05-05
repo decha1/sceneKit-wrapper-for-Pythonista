@@ -148,6 +148,67 @@ class Demo:
         print("before close")
         self.main_view.close()
 
+    def update(self, view, atTime):
+        print("update")
+        if self.is_close_button_clicked:
+            if not self.is_shutting_down:
+                self.shut_down()
+            return
+
+        cumulative_car_x = 0.0
+        cumulative_car_z = 0.0
+        car_camera_min_z_distance = 99999999999.0
+
+        camera_position = self.camera_node.position
+
+        for car in self.cars:
+            # set frequently used lookup items to a local variable of the car object ?
+            car.current_speed = abs(car.vehicle.speedInKilometersPerHour)
+            car.node = car.chassis_node.presentationNode
+            car.position = car.node.position
+
+            cumulative_car_x += car.position.x
+            cumulative_car_z += car.position.z
+            car_camera_min_z_distance = min(
+                car_camera_min_z_distance, abs(car.position.z - camera_position.z)
+            )
+
+            car.control()
+
+        self.camera_node.lookAt(
+            (
+                cumulative_car_x / len(self.cars),
+                camera_position.y,
+                cumulative_car_z / len(self.cars),
+            )
+        )
+        if (
+            len(
+                [
+                    view.isNodeInsideFrustum(car.node, self.camera_node)
+                    for car in self.cars
+                ]
+            )
+            < len(self.cars) - 1
+        ):
+            self.camera_node.position = (
+                camera_position.x,
+                camera_position.y,
+                camera_position.z + 0.1,
+            )
+        elif car_camera_min_z_distance < 15:
+            self.camera_node.position = (
+                camera_position.x,
+                camera_position.y,
+                camera_position.z + 0.05,
+            )
+        elif car_camera_min_z_distance > 35:
+            self.camera_node.position = (
+                camera_position.x,
+                camera_position.y,
+                camera_position.z - 0.03,
+            )
+
 
 class Car:
     def __init__(self, world=None, props={}):
@@ -169,6 +230,35 @@ class Car:
         self.current_speed = 0
         self.node = self.chassis_node
         self.position = self.chassis_node.position
+
+    def control(self, angle=0, desired_speed_kmh=0, reverse=False):
+        multiplier = -1.2 if reverse else 1
+        self.vehicle.setSteeringAngle(angle, 0)
+        self.vehicle.setSteeringAngle(angle, 1)
+
+        self.camera_controller_node.rotation = (0, 1, 0, -angle / 2)
+
+        if self.current_speed < desired_speed_kmh:
+            self.vehicle.applyEngineForce(multiplier * 950, 0)
+            self.vehicle.applyEngineForce(multiplier * 950, 1)
+            self.vehicle.applyBrakingForce(0, 2)
+            self.vehicle.applyBrakingForce(0, 3)
+            self.brakeLights(on=False)
+            self.smoke.birthRate = 700 + (desired_speed_kmh - self.current_speed) ** 2.5
+        elif self.current_speed > 1.2 * desired_speed_kmh:
+            self.vehicle.applyEngineForce(0, 0)
+            self.vehicle.applyEngineForce(0, 1)
+            self.vehicle.applyBrakingForce(multiplier * 20, 2)
+            self.vehicle.applyBrakingForce(multiplier * 20, 3)
+            self.brakeLights(on=True)
+            self.smoke.birthRate = 0.0
+        else:
+            self.vehicle.applyEngineForce(0, 0)
+            self.vehicle.applyEngineForce(0, 1)
+            self.vehicle.applyBrakingForce(0, 2)
+            self.vehicle.applyBrakingForce(0, 3)
+            self.brakeLights(on=False)
+            self.smoke.birthRate = 0.0
 
     def buildCar(self, body_color=None, sound_file=None, sound_volume=1.0):
         self.chassis_node = scn.Node()
