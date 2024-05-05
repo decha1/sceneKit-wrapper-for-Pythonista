@@ -173,7 +173,7 @@ class Demo:
                 car_camera_min_z_distance, abs(car.position.z - camera_position.z)
             )
 
-            car.control()
+            car.control(0, 10)
 
         self.camera_node.lookAt(
             (

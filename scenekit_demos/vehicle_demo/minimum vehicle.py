@@ -173,7 +173,7 @@ class Demo:
                 car_camera_min_z_distance, abs(car.position.z - camera_position.z)
             )
 
-            car.control()
+            car.control(0, 10)
 
         self.camera_node.lookAt(
             (
@@ -264,27 +264,6 @@ class Car:
         self.chassis_node = scn.Node()
         self.chassis_node.categoryBitMask = 1 << 1
 
-        self.camera_controller_node = scn.Node()
-
-        self.camera_node = scn.Node()
-        self.camera_node.position = (0, 1.6, 2.05)
-        self.camera_node.lookAt((0, 0.9, 10))
-        self.camera = scn.Camera()
-        self.camera.zNear = 0.25
-        self.camera.zFar = 10
-        self.camera.fieldOfView = 35
-        self.camera_node.camera = self.camera
-
-        self.camera_controller_node.addChildNode(self.camera_node)
-        self.chassis_node.addChildNode(self.camera_controller_node)
-
-        self.radar_p1L = scn.Vector3(1.2, 1.3, 2.05)
-        self.radar_p2L = scn.Vector3(4.5, 0.8, 20)
-        self.radar_pSL = scn.Vector3(10.0, 0.8, 2.4)
-        self.radar_p1R = scn.Vector3(-1.2, 1.3, 2.05)
-        self.radar_p2R = scn.Vector3(-4.5, 0.8, 20)
-        self.radar_pSR = scn.Vector3(-10.0, 0.8, 2.4)
-
         self.body_material = scn.Material()
         self.body_material.diffuse.contents = body_color
         self.body_material.specular.contents = (0.88, 0.88, 0.88)
@@ -302,181 +281,6 @@ class Car:
         self.physicsBody.restitution = 0.1
         self.physicsBody.damping = 0.3
         self.chassis_node.physicsBody = self.physicsBody
-
-        self.top = scn.Box(1.6, 0.6, 1.8, 0.1)
-        self.top.firstMaterial = self.body_material
-        self.top_node = scn.Node.nodeWithGeometry(self.top)
-        self.top_node.position = (0, 0.5 + 0.2, 0)
-        self.body_node.addChildNode(self.top_node)
-
-        self.door1 = scn.Box(2.02, 1 - 0.2, 1.8 / 2.2, 0.08)
-        self.door1.firstMaterial = self.body_material
-        self.door1_node = scn.Node.nodeWithGeometry(self.door1)
-        self.door1_node.position = (0, 0.1, 1.8 / 4)
-        self.body_node.addChildNode(self.door1_node)
-
-        self.door2_node = scn.Node.nodeWithGeometry(self.door1)
-        self.door2_node.position = (0, 0.1, -1.8 / 4 + 0.1)
-        self.body_node.addChildNode(self.door2_node)
-
-        self.window_material = scn.Material()
-        self.window_material.diffuse.contents = (0.64, 0.71, 0.75, 0.6)
-        self.window_material.specular.contents = (0.88, 0.88, 0.88, 0.8)
-
-        self.sideW1 = scn.Box(1.61, 0.6 - 0.1, 1.8 / 2.2, 0.08)
-        self.sideW1.firstMaterial = self.window_material
-        self.sideW1_node = scn.Node.nodeWithGeometry(self.sideW1)
-        self.sideW1_node.position = (0, 0.5 + 0.2, 1.8 / 4)
-        self.body_node.addChildNode(self.sideW1_node)
-
-        self.sideW2_node = scn.Node.nodeWithGeometry(self.sideW1)
-        self.sideW2_node.position = (0, 0.5 + 0.2, -1.8 / 4 + 0.1)
-        self.body_node.addChildNode(self.sideW2_node)
-
-        self.window_materials = [scn.Material() for i in range(6)]
-        self.window_materials[0] = self.window_material
-        self.window_materials[2] = self.window_material
-        for i in [1, 3, 4, 5]:
-            self.window_materials[i] = self.body_material
-
-        alpha = math.pi / 5
-        self.frontW = scn.Box(1.4, 0.6 / math.cos(alpha), 0.1, 0.06)
-        self.frontW.materials = self.window_materials
-        self.frontW_node = scn.Node.nodeWithGeometry(self.frontW)
-        self.frontW_node.position = (
-            0,
-            0.5 + 0.2 - 0.05,
-            1.8 / 2 + math.tan(alpha) * 0.6 / 2 - 0.1,
-        )
-        self.frontW_node.rotation = (1, 0, 0, -alpha)
-        self.body_node.addChildNode(self.frontW_node)
-
-        alpha = math.pi / 5
-        self.frontW2 = scn.Box(1.3, 0.6 / math.cos(alpha), 0.3, 0.0)
-        self.frontW2.firstMaterial = self.window_material
-        self.frontW2_node = scn.Node.nodeWithGeometry(self.frontW2)
-        self.frontW2_node.position = (
-            0,
-            0.5 + 0.2 - 0.05 - 0.2,
-            1.8 / 2 + math.tan(alpha) * 0.6 / 2 - 0.08,
-        )
-        self.frontW2_node.rotation = (1, 0, 0, -alpha)
-        self.body_node.addChildNode(self.frontW2_node)
-
-        alpha = math.pi / 3.2
-        self.rearW = scn.Box(1.4, 0.6 / math.cos(alpha), 0.2, 0.2)
-        self.rearW.materials = self.window_materials
-        self.rearW_node = scn.Node.nodeWithGeometry(self.rearW)
-        self.rearW_node.position = (
-            0,
-            0.5 + 0.2 - 0.0417,
-            -1.8 / 2 - math.tan(alpha) * 0.6 / 2 + 0.15,
-        )
-        self.rearW_node.rotation = (1, 0, 0, alpha)
-        self.body_node.addChildNode(self.rearW_node)
-
-        alpha = math.pi / 3.2
-        self.rearW2 = scn.Box(1.3, 0.6 / math.cos(alpha), 0.3, 0.05)
-        self.rearW2.firstMaterial = self.window_material
-        self.rearW2_node = scn.Node.nodeWithGeometry(self.rearW2)
-        self.rearW2_node.position = (
-            0,
-            0.5 + 0.2 - 0.05 - 0.2,
-            -1.8 / 2 - math.tan(alpha) * 0.6 / 2 + 0.1,
-        )
-        self.rearW2_node.rotation = (1, 0, 0, alpha)
-        self.body_node.addChildNode(self.rearW2_node)
-
-        self.nose = scn.Pyramid(2 - 0.4, 0.15, 1 - 0.2)
-        self.nose.firstMaterial = self.body_material
-        self.nose_node = scn.Node.nodeWithGeometry(self.nose)
-        self.nose_node.position = (0, 0.75, 2 - 0.03)
-        self.nose_node.rotation = (1, 0, 0, math.pi / 2)
-        self.chassis_node.addChildNode(self.nose_node)
-
-        self.lampBack_colors = [(0.6, 0.0, 0.0), (1.0, 0.0, 0.0)]
-
-        self.front_spot = scn.Light()
-        self.front_spot.type = scn.LightTypeSpot
-        self.front_spot.castsShadow = False
-        self.front_spot.color = (1.0, 1.0, 0.95)
-        self.front_spot.spotInnerAngle = 20
-        self.front_spot.spotOuterAngle = 25
-        self.front_spot.attenuationEndDistance = 15
-
-        self.exhaust = scn.Tube(0.05, 0.07, 0.08)
-        self.exhaust.firstMaterial.metalness.contents = (0.5, 0.5, 0.5)
-        self.exhaust_node = scn.Node.nodeWithGeometry(self.exhaust)
-        self.exhaust_node.position = (0.5, -0.42, -2.04)
-        self.exhaust_node.rotation = (1, 0, 0, math.pi / 2)
-        self.body_node.addChildNode(self.exhaust_node)
-
-        self.smoke = scn.ParticleSystem()
-        self.smoke.emitterShape = scn.Sphere(0.01)
-        self.smoke.birthLocation = (
-            scn.ParticleBirthLocation.SCNParticleBirthLocationSurface
-        )
-        self.smoke.birthRate = 6000
-        self.smoke.loops = True
-        self.smoke.emissionDuration = 0.08
-        self.smoke.idleDuration = 0.4
-        self.smoke.idleDurationVariation = 0.2
-        self.smoke.particleLifeSpan = 0.3
-        self.smoke.particleLifeSpanVariation = 1.2
-        self.smoke.particleColor = (1.0, 1.0, 1.0, 1.0)
-        self.smoke.particleColorVariation = (0.6, 0.0, 0.6, 0.0)
-        self.smoke.blendMode = scn.ParticleBlendMode.Multiply
-        self.smoke.birthDirection = scn.ParticleBirthDirection.Random
-        self.smoke.particleVelocity = 2.0
-        self.smoke.particleVelocityVariation = 3.5
-        self.smoke.acceleration = (0.0, 15, 0.0)
-        self.sizeAnim = scn.CoreBasicAnimation()
-        self.sizeAnim.fromValue = 0.1
-        self.sizeAnim.toValue = 0.0
-        self.size_con = scn.ParticlePropertyController.controllerWithAnimation(
-            self.sizeAnim
-        )
-        self.smoke.propertyControllers = {scn.SCNParticlePropertySize: self.size_con}
-
-        self.smoker_node = scn.Node()
-        self.smoker_node.position = (0.0, -0.15, 0.0)
-        self.smoker_node.addParticleSystem(self.smoke)
-        self.exhaust_node.addChildNode(self.smoker_node)
-
-        self.lamp = scn.Tube(0.12, 0.15, 4.07)
-        self.lamp.firstMaterial.metalness.contents = (0.93, 0.93, 0.93)
-        self.lampGlasFront = scn.Sphere(0.13)
-        self.lampGlasFront.firstMaterial.emission.contents = (0.92, 0.93, 0.66)
-        self.lampGlasBack = scn.Sphere(0.13)
-        self.lampGlasBack.firstMaterial.diffuse.contents = "black"
-        self.lampGlasBack.firstMaterial.emission.contents = self.lampBack_colors[0]
-
-        self.lamp_nodeR = scn.Node.nodeWithGeometry(self.lamp)
-        self.lamp_nodeR.position = (-0.6, 0.75, 0.015)
-        self.lamp_nodeR.rotation = (1, 0, 0, math.pi / 2)
-        self.chassis_node.addChildNode(self.lamp_nodeR)
-        self.lamp_nodeL = scn.Node.nodeWithGeometry(self.lamp)
-        self.lamp_nodeL.position = (0.6, 0.75, 0.015)
-        self.lamp_nodeL.rotation = (1, 0, 0, math.pi / 2)
-        self.chassis_node.addChildNode(self.lamp_nodeL)
-
-        self.lampGlasFront_nodeR = scn.Node.nodeWithGeometry(self.lampGlasFront)
-        self.lampGlasFront_nodeR.position = (0, 1.95, 0)
-        self.lampGlasFront_nodeR.lookAt((0, 45, 10))
-        self.lampGlasFront_nodeR.light = self.front_spot
-        self.lamp_nodeR.addChildNode(self.lampGlasFront_nodeR)
-        self.lampGlasBack_nodeR = scn.Node.nodeWithGeometry(self.lampGlasBack)
-        self.lampGlasBack_nodeR.position = (0, -1.95, 0)
-        self.lamp_nodeR.addChildNode(self.lampGlasBack_nodeR)
-
-        self.lampGlasFront_nodeL = scn.Node.nodeWithGeometry(self.lampGlasFront)
-        self.lampGlasFront_nodeL.position = (0, 1.95, 0)
-        self.lampGlasFront_nodeL.lookAt((0, 45, 10))
-        self.lampGlasFront_nodeL.light = self.front_spot
-        self.lamp_nodeL.addChildNode(self.lampGlasFront_nodeL)
-        self.lampGlasBack_nodeL = scn.Node.nodeWithGeometry(self.lampGlasBack)
-        self.lampGlasBack_nodeL.position = (0, -1.95, 0)
-        self.lamp_nodeL.addChildNode(self.lampGlasBack_nodeL)
 
         self.wheel_nodes = [scn.Node()]
         self.tire = scn.Tube(0.12, 0.35, 0.25)
@@ -564,44 +368,6 @@ class Car:
         )
         self.physics_world.addBehavior(self.vehicle)
         self.world.root_node.addChildNode(self.chassis_node)
-
-        if ENGINESOUND:
-            self.sound = scn.AudioSource(sound_file)
-            self.sound.load()
-            self.sound.loops = True
-            self.sound.volume = sound_volume
-            self.sound_player = scn.AudioPlayer.audioPlayerWithSource(self.sound)
-            self.chassis_node.addAudioPlayer(self.sound_player)
-        """
-        # ---------------------------------------------------------
-        # Tire tracks (i.e. the track left behind by car's wheels)
-        self.tire_tracks = scn.ParticleSystem()
-        # self.tire_tracks.birthRate = 750
-        # self.tire_tracks.loops = True
-        # self.tire_tracks.emissionDuration = 0.1
-        # self.tire_tracks.particleLifeSpan = 4.6
-        # self.tire_tracks.particleLifeSpanVariation = 5
-        # self.tire_tracks.particleSize = 0.02
-        # self.tire_tracks.particleColor = (0.1, 0.1, 0.1, 1.0)
-        # self.tire_tracks.particleColorVariation = (0.1, 0.1, 0.1, 0.1)
-        # self.tire_tracks.blendMode = scn.ParticleBlendMode.Replace
-        # self.tire_tracks.emitterShape = scn.Cylinder(0.02, 0.26)
-        # self.tire_tracks.birthLocation = (
-        #    scn.ParticleBirthLocation.SCNParticleBirthLocationVolume
-        # )
-        self.tire_tracks.handle(
-            scn.ParticleEvent.Birth,
-            [scn.ParticlePropertyPosition],
-            self.tire_tracks_particle_event_handler,
-        )
-
-        logger.debug("before")
-        self.tire_node.addParticleSystem(self.tire_tracks)
-        """
-        # ---------------------------------------------------------
-
-    def tire_tracks_particle_event_handler(self, propValues, prop, particleIndex):
-        propValues[1] = 0.0  # set y to 0 ?
 
 
 Demo.run()
