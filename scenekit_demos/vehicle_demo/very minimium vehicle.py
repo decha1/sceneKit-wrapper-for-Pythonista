@@ -49,22 +49,10 @@ class Demo:
         tile_image = ui.Image.named("plf:Ground_DirtCenter")
         tile_number = 5
         tile_factor = scn.Matrix4(
-            tile_number,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            tile_number,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            tile_number,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
+            tile_number, 0.0, 0.0, 0.0,
+            0.0, tile_number, 0.0, 0.0,
+            0.0, 0.0, tile_number, 0.0,
+            0.0, 0.0, 0.0, 1.0
         )
 
         floor_geometry.firstMaterial.diffuse.contents = tile_image
