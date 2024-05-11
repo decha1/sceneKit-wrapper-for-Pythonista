@@ -158,6 +158,7 @@ class Car:
         
         
         
+        
         '''
         
         for i in range(2):
@@ -173,5 +174,11 @@ class Car:
         self.vehicle = scn.PhysicsVehicle(
             chassisBody=self.chassis_node.physicsBody, wheels=self.physics_wheels
         )
-        
+
+
+        print(self.vehicle.chassisBody.position)
+        print()s
+        for i in wheels:
+            print(i.node.position)
+
 Demo.run()
