@@ -24,17 +24,18 @@ class Demo:
     @on_main_thread
     def main(self):
 
-        db = [scn.SCNDebugOptionNone,
-          scn.SCNDebugOptionsShowWireframe,
-          scn.SCNDebugOptionsRenderAsWireframe,
-          scn.SCNDebugOptionsShowSkeletons,
-          scn.SCNDebugOptionsShowCreases,
-          scn.SCNDebugOtionsShowConstraints,
-          scn.SCNDebugOptionsShowCameras,
-          scn.SCNDebugOptionsShowLightInfluences,
-          scn.SCNDebugOptionsShowLightExtents,
-          scn.SCNDebugOptionsShowPhysicsShapes,
-          scn.SCNDebugOptionsShowPhysicsFields]
+        db = [scn.DebugOption.OptionNone,
+                scn.DebugOption.ShowBoundingBoxes,
+                scn.DebugOption.ShowWireframe,
+                scn.DebugOption.RenderAsWireframe,
+                scn.DebugOption.ShowSkeletons,
+                scn.DebugOption.ShowCreases,
+                scn.DebugOption.ShowConstraints,
+                scn.DebugOption.ShowCameras,
+                scn.DebugOption.ShowLightInfluences,
+                scn.DebugOption.ShowLightExtents,
+                scn.DebugOption.ShowPhysicsShapes,
+                scn.DebugOption.ShowPhysicsFields]
     
 
         self.main_view = ui.View()
