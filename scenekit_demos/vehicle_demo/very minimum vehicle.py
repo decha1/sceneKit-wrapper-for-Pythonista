@@ -179,6 +179,11 @@ class Car:
         print(self.chassis_node.position)
         print()
         for i in self.physics_wheels:
-            print(i.node.position)
+            print(i.node.position,
+                  i.connciontPosition,
+                  i.axle,
+                  i.sterringAxis,
+                  '/n',
+                  sep='/n')
 
 Demo.run()
