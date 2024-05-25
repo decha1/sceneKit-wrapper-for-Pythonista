@@ -180,9 +180,12 @@ class Car:
         print()
         for i in self.physics_wheels:
             print(i.node.position,
-                  i.connciontPosition,
+                  i.connectionPosition,
                   i.axle,
-                  i.sterringAxis,
+                  i.steeringAxis,
+                  i.radius,
+                  i.maximumSuspensionTravel,
+                  
                   '/n',
                   sep='/n')
 
