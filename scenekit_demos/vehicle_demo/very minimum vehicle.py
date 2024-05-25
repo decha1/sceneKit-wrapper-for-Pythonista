@@ -314,13 +314,13 @@ class Car:
         tire_node = scn.Node.nodeWithGeometry(tire)
         tire_node.rotation = (0, 0, 1, math.pi / 2)
 
-        self.rim = scn.Cylinder(0.14, 0.1)
-        self.rim.firstMaterial.diffuse.contents = "gray"
-        self.rim.firstMaterial.specular.contents = (0.88, 0.88, 0.88)
-        self.rim_node = scn.Node.nodeWithGeometry(self.rim)
-        self.rim_node.name = "rim"
-        self.rim_node.position = (0, 0.06, 0)
-        self.tire_node.addChildNode(self.rim_node)
+        rim = scn.Cylinder(0.14, 0.1)
+        rim.firstMaterial.diffuse.contents = "gray"
+        rim.firstMaterial.specular.contents = (0.88, 0.88, 0.88)
+        rim_node = scn.Node.nodeWithGeometry(rim)
+        rim_node.name = "rim"
+        rim_node.position = (0, 0.06, 0)
+        tire_node.addChildNode(rim_node)
 
         wheel_nodes = [scn.Node()]
         wheel_nodes[0].addChildNode(tire_node)
