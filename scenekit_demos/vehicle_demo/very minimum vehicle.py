@@ -103,7 +103,7 @@ class Car:
         self.position = self.chassis_node.position
         
         self.world.rootNode.addChildNode(self.chassis_node)
-        self.physics_world.addBehavior(self.vehicle)
+        self.physics_world.addBehavior(self.physics_vehicle)
     
     def control(self):
         self.vehicle.applyEngineForce(100, 0)
