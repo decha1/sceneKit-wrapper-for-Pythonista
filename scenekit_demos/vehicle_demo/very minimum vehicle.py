@@ -15,12 +15,28 @@ logging.basicConfig(filename="example.log", encoding="utf-8", level=logging.DEBU
 
 
 class Demo:
+    
+
     @classmethod
     def run(cls):
         cls().main()
 
     @on_main_thread
     def main(self):
+
+        db = [scn.SCNDebugOptionNone,
+          scn.SCNDebugOptionsShowWireframe,
+          scn.SCNDebugOptionsRenderAsWireframe,
+          scn.SCNDebugOptionsShowSkeletons,
+          scn.SCNDebugOptionsShowCreases,
+          scn.SCNDebugOtionsShowConstraints,
+          scn.SCNDebugOptionsShowCameras,
+          scn.SCNDebugOptionsShowLightInfluences,
+          scn.SCNDebugOptionsShowLightExtents,
+          scn.SCNDebugOptionsShowPhysicsShapes,
+          scn.SCNDebugOptionsShowPhysicsFields]
+    
+
         self.main_view = ui.View()
         w, h = ui.get_window_size()
         self.main_view.frame = (0, 0, w, h)
@@ -28,6 +44,7 @@ class Demo:
         
         self.scene_view = scn.View((0, 0, w, h), superView=self.main_view)
         self.scene_view.preferredFramesPerSecond = 30
+        self.scene_view.debugOptions = db[0]
 
         self.scene_view.autoresizingMask = (
             scn.ViewAutoresizing.FlexibleHeight | scn.ViewAutoresizing.FlexibleWidth
@@ -81,10 +98,10 @@ class Demo:
         self.car = Car(world=self.scene_view.scene)
         self.root_node.addChildNode(self.car.chassis_node)
         #self.scene_view.scene.physicsWorld.
-        self.car.control()
+        
         self.main_view.present(style="fullscreen")
         
-    def make_lights(self):
+    def  make_lights(self):
         all_lights_node = scn.Node()
 
         light_node = scn.Node()
