@@ -76,7 +76,7 @@ class Demo:
         self.camera_node.position = scn.Vector3( 5, 10, 30)
         self.root_node.addChildNode(self.camera_node)
         
-        
+        self.root_node.addChildNode(self.make_lights())
         
         self.car = Car(world=self.scene_view.scene)
         self.root_node.addChildNode(self.car.chassis_node)
@@ -84,6 +84,29 @@ class Demo:
         self.car.control()
         self.main_view.present(style="fullscreen")
         
+    def make_lights(self):
+        all_lights_node = scn.Node()
+
+        light_node = scn.Node()
+        light_node.position = (50, 50, 50)
+        light_node.lookAt(0, 0, 0)
+        light = scn.Light()
+        light.type = scn.LightTypeDirectional
+        light.castsShadow = True
+        light.shadowSampleCount = 16
+        light.color = (0.95, 1.0, 0.98)
+        light_node.light = light
+        all_lights_node.addChildNode(light_node)
+
+        ambient_node = scn.Node()
+        ambient = scn.Light()
+        ambient.type = scn.LightTypeAmbient
+        ambient.color = (0.38, 0.42, 0.45, 0.1)
+        ambient_node.light = ambient
+        all_lights_node.addChildNode(ambient_node)
+
+        return all_lights_node
+    
     def update(self,a,b):
         self.car.control()
         
@@ -287,6 +310,8 @@ class Car:
         lamp_nodeL.rotation = (1, 0, 0, math.pi / 2)
         body_node.addChildNode(lamp_nodeL)
 
+        return body_node
+    
         lampGlasFront_nodeR = scn.Node.nodeWithGeometry(lampGlasFront)
         lampGlasFront_nodeR.position = (0, 1.95, 0)
         lampGlasFront_nodeR.lookAt((0, 45, 10))
@@ -305,7 +330,7 @@ class Car:
         lampGlasBack_nodeL.position = (0, -1.95, 0)
         lamp_nodeL.addChildNode(lampGlasBack_nodeL)
 
-        return body_node
+
 
     def build_wheels(self):
 
