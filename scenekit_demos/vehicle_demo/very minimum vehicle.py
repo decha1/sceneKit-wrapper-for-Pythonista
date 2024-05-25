@@ -249,7 +249,7 @@ class Car:
         nose = scn.Pyramid(2 - 0.4, 0.15, 1 - 0.2)
         nose.firstMaterial = body_material
         nose_node = scn.Node.nodeWithGeometry(nose)
-        nose_node.position = (0, 0.75, 2 - 0.03)
+        nose_node.position = (0, 0, 2 - 0.03)
         nose_node.rotation = (1, 0, 0, math.pi / 2)
         body_node.addChildNode(nose_node)
 
@@ -270,7 +270,40 @@ class Car:
         exhaust_node.rotation = (1, 0, 0, math.pi / 2)
         body_node.addChildNode(exhaust_node)
 
+        lamp = scn.Tube(0.12, 0.15, 4.07)
+        lamp.firstMaterial.metalness.contents = (0.93, 0.93, 0.93)
+        lampGlasFront = scn.Sphere(0.13)
+        lampGlasFront.firstMaterial.emission.contents = (0.92, 0.93, 0.66)
+        lampGlasBack = scn.Sphere(0.13)
+        lampGlasBack.firstMaterial.diffuse.contents = "black"
+        lampGlasBack.firstMaterial.emission.contents = lampBack_colors[0]
 
+        lamp_nodeR = scn.Node.nodeWithGeometry(lamp)
+        lamp_nodeR.position = (-0.6, 0, 0.015)
+        lamp_nodeR.rotation = (1, 0, 0, math.pi / 2)
+        body_node.addChildNode(lamp_nodeR)
+        lamp_nodeL = scn.Node.nodeWithGeometry(lamp)
+        lamp_nodeL.position = (0.6, 0, 0.015)
+        lamp_nodeL.rotation = (1, 0, 0, math.pi / 2)
+        body_node.addChildNode(lamp_nodeL)
+
+        lampGlasFront_nodeR = scn.Node.nodeWithGeometry(lampGlasFront)
+        lampGlasFront_nodeR.position = (0, 1.95, 0)
+        lampGlasFront_nodeR.lookAt((0, 45, 10))
+        lampGlasFront_nodeR.light = front_spot
+        lamp_nodeR.addChildNode(lampGlasFront_nodeR)
+        lampGlasBack_nodeR = scn.Node.nodeWithGeometry(lampGlasBack)
+        lampGlasBack_nodeR.position = (0, -1.95, 0)
+        lamp_nodeR.addChildNode(lampGlasBack_nodeR)
+
+        lampGlasFront_nodeL = scn.Node.nodeWithGeometry(lampGlasFront)
+        lampGlasFront_nodeL.position = (0, 1.95, 0)
+        lampGlasFront_nodeL.lookAt((0, 45, 10))
+        lampGlasFront_nodeL.light = front_spot
+        lamp_nodeL.addChildNode(lampGlasFront_nodeL)
+        lampGlasBack_nodeL = scn.Node.nodeWithGeometry(lampGlasBack)
+        lampGlasBack_nodeL.position = (0, -1.95, 0)
+        lamp_nodeL.addChildNode(lampGlasBack_nodeL)
 
         return body_node
 
