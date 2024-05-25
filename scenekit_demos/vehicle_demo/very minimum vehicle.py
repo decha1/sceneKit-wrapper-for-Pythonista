@@ -177,7 +177,7 @@ class Car:
 
 
         print(self.vehicle.chassisBody.position)
-        print()s
+        print()
         for i in wheels:
             print(i.node.position)
 
