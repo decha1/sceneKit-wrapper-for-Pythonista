@@ -104,53 +104,27 @@ class Car:
         
         self.world.rootNode.addChildNode(self.chassis_node)
         self.physics_world.addBehavior(self.vehicle)
+    
     def control(self):
         self.vehicle.applyEngineForce(100, 0)
     
     def buildCar(self):
         self.chassis_node = scn.Node()
-        
-        self.body_material = scn.Material()
-        self.body_material.diffuse.contents = "#ff0000"
-        self.body_material.specular.contents = (0.88, 0.88, 0.88)
 
-        self.body = scn.Box(2, 1, 4, 0.2)
-        self.body.firstMaterial = self.body_material
-
-        self.body_node = scn.Node.nodeWithGeometry(self.body)
-        self.body_node.position = (0, 0.75, 0)
-        self.chassis_node.addChildNode(self.body_node)
+        self.car_without_wheels = self.build_car_without_wheels()
+        self.chassis_node.addChildNode(self.car_without_wheels)
         
-        self.physicsBody = scn.PhysicsBody.dynamicBody()
-        self.physicsBody.allowsResting = False
-        self.physicsBody.mass = 120
-        self.physicsBody.restitution = 0.1
-        self.physicsBody.damping = 0.3
-        self.chassis_node.physicsBody = self.physicsBody
-        
-        self.wheel_nodes = [scn.Node()]
-        self.tire = scn.Tube(0.12, 0.35, 0.25)
-        self.tire.firstMaterial.diffuse.contents = "black"
-        self.wheel_nodes[0].position = (0.94, 0.4, 2 - 0.6)
-        self.tire_node = scn.Node.nodeWithGeometry(self.tire)
-        self.tire_node.rotation = (0, 0, 1, math.pi / 2)
-        self.wheel_nodes[0].addChildNode(self.tire_node)
-        
-        self.wheel_nodes.append(self.wheel_nodes[0].clone())
-        self.wheel_nodes[1].position = (-0.94, 0.4, 2 - 0.6)
-
-
-        self.wheel_nodes.append(self.wheel_nodes[0].clone())
-        self.wheel_nodes[2].position = (0.94, 0.4, -2 + 0.7)
-        
-
-        self.wheel_nodes.append(self.wheel_nodes[0].clone())
-        self.wheel_nodes[3].position = (-0.94, 0.4, -2 + 0.7)
-        
-
+        self.wheel_nodes = self.build_wheels()
         for aNode in self.wheel_nodes:
             self.chassis_node.addChildNode(aNode)
 
+        self.car_physics_body = scn.PhysicsBody.dynamicBody()
+        self.car_physics_body.allowsResting = False
+        self.car_physics_body.mass = 120
+        self.car_physics_body.restitution = 0.1
+        self.car_physics_body.damping = 0.3
+        #self.chassis_node.physicsBody = car_physics_body
+        
         self.physics_wheels = [
             scn.PhysicsVehicleWheel(node=aNode) for aNode in self.wheel_nodes
         ]
@@ -172,7 +146,7 @@ class Car:
         self.physics_wheels = [scn.PhysicsVehicleWheel(w)  for w in self.wheel_nodes]
         '''
         self.vehicle = scn.PhysicsVehicle(
-            chassisBody=self.chassis_node.physicsBody, wheels=self.physics_wheels
+            chassisBody=self.car_physics_body, wheels=self.physics_wheels
         )
 
 
@@ -188,5 +162,44 @@ class Car:
                   
                   '\n',
                   sep='\n')
+
+    def build_car_without_wheels(self):
+        body_material = scn.Material()
+        body_material.diffuse.contents = "#ff0000"
+        body_material.specular.contents = (0.88, 0.88, 0.88)
+
+        body = scn.Box(2, 1, 4, 0.2)
+        body.firstMaterial = self.body_material
+
+        body_node = scn.Node.nodeWithGeometry(self.body)
+        body_node.position = (0, 0.75, 0)
+        
+        return body_node
+
+    def build_wheels(self):
+
+        tire = scn.Tube(0.12, 0.35, 0.25)
+        tire.firstMaterial.diffuse.contents = "black"
+        tire_node = scn.Node.nodeWithGeometry(self.tire)
+        tire_node.rotation = (0, 0, 1, math.pi / 2)
+
+        wheel_nodes = [scn.Node()]
+        wheel_nodes[0].addChildNode(tire_node)
+
+
+        wheel_nodes[0].position = (0.94, 0.4, 2 - 0.6)
+        
+        wheel_nodes.append(wheel_nodes[0].clone())
+        wheel_nodes[1].position = (-0.94, 0.4, 2 - 0.6)
+
+        wheel_nodes.append(self.wheel_nodes[0].clone())
+        wheel_nodes[2].position = (0.94, 0.4, -2 + 0.7)
+        
+        wheel_nodes.append(self.wheel_nodes[0].clone())
+        wheel_nodes[3].position = (-0.94, 0.4, -2 + 0.7)
+                
+        return self.wheel_nodes
+
+
 
 Demo.run()
