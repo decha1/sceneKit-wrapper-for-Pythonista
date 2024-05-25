@@ -111,8 +111,8 @@ class Car:
     def buildCar(self):
         self.chassis_node = scn.Node()
 
-        self.car_without_wheels = self.build_car_without_wheels()
-        self.chassis_node.addChildNode(self.car_without_wheels)
+        car_without_wheels = self.build_body_without_wheels()
+        self.chassis_node.addChildNode(car_without_wheels)
         
         wheel_nodes = self.build_wheels()
         for wheel_node in wheel_nodes:
@@ -148,7 +148,7 @@ class Car:
                   '\n',
                   sep='\n')
 
-    def build_car_without_wheels(self):
+    def build_body_without_wheels(self):
         body_material = scn.Material()
         body_material.diffuse.contents = "#ff0000"
         body_material.specular.contents = (0.88, 0.88, 0.88)
@@ -159,6 +159,119 @@ class Car:
         body_node = scn.Node.nodeWithGeometry(body)
         body_node.position = (0, 0.75, 0)
         
+
+        top = scn.Box(1.6, 0.6, 1.8, 0.1)
+        top.firstMaterial = body_material
+        top_node = scn.Node.nodeWithGeometry(top)
+        top_node.position = (0, 0.5 + 0.2, 0)
+        body_node.addChildNode(top_node)
+
+        door1 = scn.Box(2.02, 1 - 0.2, 1.8 / 2.2, 0.08)
+        door1.firstMaterial = body_material
+        door1_node = scn.Node.nodeWithGeometry(door1)
+        door1_node.position = (0, 0.1, 1.8 / 4)
+        body_node.addChildNode(door1_node)
+
+        door2_node = scn.Node.nodeWithGeometry(door1)
+        door2_node.position = (0, 0.1, -1.8 / 4 + 0.1)
+        body_node.addChildNode(door2_node)
+
+        window_material = scn.Material()
+        window_material.diffuse.contents = (0.64, 0.71, 0.75, 0.6)
+        window_material.specular.contents = (0.88, 0.88, 0.88, 0.8)
+
+        sideW1 = scn.Box(1.61, 0.6 - 0.1, 1.8 / 2.2, 0.08)
+        sideW1.firstMaterial = window_material
+        sideW1_node = scn.Node.nodeWithGeometry(sideW1)
+        sideW1_node.position = (0, 0.5 + 0.2, 1.8 / 4)
+        body_node.addChildNode(sideW1_node)
+
+        sideW2_node = scn.Node.nodeWithGeometry(sideW1)
+        sideW2_node.position = (0, 0.5 + 0.2, -1.8 / 4 + 0.1)
+        body_node.addChildNode(sideW2_node)
+
+        window_materials = [scn.Material() for i in range(6)]
+        window_materials[0] = window_material
+        window_materials[2] = window_material
+        for i in [1, 3, 4, 5]:
+            window_materials[i] = body_material
+
+
+        alpha = math.pi / 5
+        frontW = scn.Box(1.4, 0.6 / math.cos(alpha), 0.1, 0.06)
+        frontW.materials = window_materials
+        frontW_node = scn.Node.nodeWithGeometry(frontW)
+        frontW_node.position = (
+            0,
+            0.5 + 0.2 - 0.05,
+            1.8 / 2 + math.tan(alpha) * 0.6 / 2 - 0.1,
+        )
+        frontW_node.rotation = (1, 0, 0, -alpha)
+        body_node.addChildNode(frontW_node)
+
+        alpha = math.pi / 5
+        frontW2 = scn.Box(1.3, 0.6 / math.cos(alpha), 0.3, 0.0)
+        frontW2.firstMaterial = window_material
+        frontW2_node = scn.Node.nodeWithGeometry(frontW2)
+        frontW2_node.position = (
+            0,
+            0.5 + 0.2 - 0.05 - 0.2,
+            1.8 / 2 + math.tan(alpha) * 0.6 / 2 - 0.08,
+        )
+        frontW2_node.rotation = (1, 0, 0, -alpha)
+        body_node.addChildNode(frontW2_node)
+
+        alpha = math.pi / 3.2
+        rearW = scn.Box(1.4, 0.6 / math.cos(alpha), 0.2, 0.2)
+        rearW.materials = window_materials
+        rearW_node = scn.Node.nodeWithGeometry(rearW)
+        rearW_node.position = (
+            0,
+            0.5 + 0.2 - 0.0417,
+            -1.8 / 2 - math.tan(alpha) * 0.6 / 2 + 0.15,
+        )
+        rearW_node.rotation = (1, 0, 0, alpha)
+        body_node.addChildNode(rearW_node)
+
+        alpha = math.pi / 3.2
+        rearW2 = scn.Box(1.3, 0.6 / math.cos(alpha), 0.3, 0.05)
+        rearW2.firstMaterial = window_material
+        rearW2_node = scn.Node.nodeWithGeometry(rearW2)
+        rearW2_node.position = (
+            0,
+            0.5 + 0.2 - 0.05 - 0.2,
+            -1.8 / 2 - math.tan(alpha) * 0.6 / 2 + 0.1,
+        )
+        rearW2_node.rotation = (1, 0, 0, alpha)
+        body_node.addChildNode(rearW2_node)
+
+
+        nose = scn.Pyramid(2 - 0.4, 0.15, 1 - 0.2)
+        nose.firstMaterial = body_material
+        nose_node = scn.Node.nodeWithGeometry(nose)
+        nose_node.position = (0, 0.75, 2 - 0.03)
+        nose_node.rotation = (1, 0, 0, math.pi / 2)
+        body_node.addChildNode(nose_node)
+
+        lampBack_colors = [(0.6, 0.0, 0.0), (1.0, 0.0, 0.0)]
+
+        front_spot = scn.Light()
+        front_spot.type = scn.LightTypeSpot
+        front_spot.castsShadow = False
+        front_spot.color = (1.0, 1.0, 0.95)
+        front_spot.spotInnerAngle = 20
+        front_spot.spotOuterAngle = 25
+        front_spot.attenuationEndDistance = 15
+
+        exhaust = scn.Tube(0.05, 0.07, 0.08)
+        exhaust.firstMaterial.metalness.contents = (0.5, 0.5, 0.5)
+        exhaust_node = scn.Node.nodeWithGeometry(exhaust)
+        exhaust_node.position = (0.5, -0.42, -2.04)
+        exhaust_node.rotation = (1, 0, 0, math.pi / 2)
+        body_node.addChildNode(exhaust_node)
+
+
+
         return body_node
 
     def build_wheels(self):
