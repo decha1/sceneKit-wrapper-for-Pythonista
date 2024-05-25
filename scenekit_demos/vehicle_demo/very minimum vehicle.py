@@ -106,7 +106,7 @@ class Car:
         self.physics_world.addBehavior(self.physics_vehicle)
     
     def control(self):
-        self.vehicle.applyEngineForce(100, 0)
+        self.physics_vehicle.applyEngineForce(100, 0)
     
     def buildCar(self):
         self.chassis_node = scn.Node()
