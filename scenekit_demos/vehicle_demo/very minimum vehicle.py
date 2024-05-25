@@ -115,44 +115,29 @@ class Car:
         self.chassis_node.addChildNode(self.car_without_wheels)
         
         wheel_nodes = self.build_wheels()
-        for aNode in wheel_nodes:
-            self.chassis_node.addChildNode(aNode)
+        for wheel_node in wheel_nodes:
+            self.chassis_node.addChildNode(wheel_node)
 
         car_physics_body = scn.PhysicsBody.dynamicBody()
         car_physics_body.allowsResting = False
         car_physics_body.mass = 120
         car_physics_body.restitution = 0.1
         car_physics_body.damping = 0.3
-        #self.chassis_node.physicsBody = car_physics_body
+        self.chassis_node.physicsBody = car_physics_body
         
         physics_wheels = [
-            scn.PhysicsVehicleWheel(node=aNode) for aNode in wheel_nodes
+            scn.PhysicsVehicleWheel(node=wheel_node) for wheel_node in wheel_nodes
         ]
         
-        
-        
-        
-        
-        '''
-        
-        for i in range(2):
-            self.wheel_nodes.append(self.wheel_nodes[0].clone())
-        self.wheel_nodes[1].position=(-0.94, 0.4, 2 - 0.6)
-        self.wheel_nodes[1].position=(0.94, 0.4, -2 + 0.7)
-        self.wheel_nodes[1].position=(-0.94, 0.4, -2 + 0.7)
-        
-        for aNode in self.wheel_nodes:
-            self.chassis_node.addChildNode(aNode)
-        self.physics_wheels = [scn.PhysicsVehicleWheel(w)  for w in self.wheel_nodes]
-        '''
-        self.vehicle = scn.PhysicsVehicle(
+ 
+        self.physics_vehicle = scn.PhysicsVehicle(
             chassisBody=car_physics_body, wheels=physics_wheels
         )
 
 
         print(self.chassis_node.position)
         print()
-        for i in self.physics_wheels:
+        for i in self.physics_vehicle.getWheels():
             print(i.node.position,
                   i.connectionPosition,
                   i.axle,
