@@ -322,6 +322,18 @@ class Car:
         rim_node.position = (0, 0.06, 0)
         tire_node.addChildNode(rim_node)
 
+
+        rim_deco = scn.Text("Y", 0.05)
+        rim_deco.font = ("Arial Rounded MT Bold", 0.3)
+        rim_deco.firstMaterial.diffuse.contents = "black"
+        rim_deco.firstMaterial.specular.contents = (0.88, 0.88, 0.88)
+        rim_deco_node = scn.Node.nodeWithGeometry(rim_deco)
+        rim_deco_node.name = "deco"
+        rim_deco_node.position = (-0.1, 0.03, -1.12)
+        rim_deco_node.rotation = (1, 0, 0, math.pi / 2)
+        rim_node.addChildNode(rim_deco_node)
+
+
         wheel_nodes = [scn.Node()]
         wheel_nodes[0].addChildNode(tire_node)
 
