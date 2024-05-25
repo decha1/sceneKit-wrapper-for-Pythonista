@@ -176,9 +176,9 @@ class Car:
         )
 
 
-        print(self.vehicle.chassisBody.position)
+        print(self.chassis_node.position)
         print()
-        for i in wheels:
+        for i in self.physics_wheels:
             print(i.node.position)
 
 Demo.run()
