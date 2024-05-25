@@ -146,7 +146,7 @@ class Car:
         self.physics_wheels = [scn.PhysicsVehicleWheel(w)  for w in self.wheel_nodes]
         '''
         self.vehicle = scn.PhysicsVehicle(
-            chassisBody=self.car_physics_body, wheels=self.physics_wheels
+            chassisBody=car_physics_body, wheels=physics_wheels
         )
 
 
