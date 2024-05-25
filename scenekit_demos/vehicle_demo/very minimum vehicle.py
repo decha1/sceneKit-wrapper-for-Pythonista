@@ -186,7 +186,7 @@ class Car:
                   i.radius,
                   i.maximumSuspensionTravel,
                   
-                  '/n',
-                  sep='/n')
+                  '\n',
+                  sep='\n')
 
 Demo.run()
