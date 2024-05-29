@@ -15,17 +15,17 @@ logging.basicConfig(filename="example.log", encoding="utf-8", level=logging.DEBU
 
 
 class db:
-    OptionNone = (scn.DebugOption.OptionNone,)
-    ShowBoundingBoxes = (scn.DebugOption.ShowBoundingBoxes,)
-    ShowWireframe = (scn.DebugOption.ShowWireframe,)
-    RenderAsWireframe = (scn.DebugOption.RenderAsWireframe,)
-    ShowSkeletons = (scn.DebugOption.ShowSkeletons,)
-    ShowCreases = (scn.DebugOption.ShowCreases,)
-    ShowConstraints = (scn.DebugOption.ShowConstraints,)
-    ShowCameras = (scn.DebugOption.ShowCameras,)
-    ShowLightInfluence = (scn.DebugOption.ShowLightInfluences,)
-    ShowLightExtents = (scn.DebugOption.ShowLightExtents,)
-    ShowPhysicsShapes = (scn.DebugOption.ShowPhysicsShapes,)
+    OptionNone = scn.DebugOption.OptionNone
+    ShowBoundingBoxes = scn.DebugOption.ShowBoundingBoxes
+    ShowWireframe = scn.DebugOption.ShowWireframe
+    RenderAsWireframe = scn.DebugOption.RenderAsWireframe
+    ShowSkeletons = scn.DebugOption.ShowSkeletons
+    ShowCreases = scn.DebugOption.ShowCreases
+    ShowConstraints = scn.DebugOption.ShowConstraints
+    ShowCameras = scn.DebugOption.ShowCameras
+    ShowLightInfluence = scn.DebugOption.ShowLightInfluences
+    ShowLightExtents = scn.DebugOption.ShowLightExtents
+    ShowPhysicsShapes = scn.DebugOption.ShowPhysicsShapes
     ShowPhysicsField = scn.DebugOption.ShowPhysicsFields
 
 
