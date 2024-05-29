@@ -31,8 +31,8 @@ class db(Enum):
 class Demo():
     @classmethod
     def run(cls):
-        demo = cls()
-        demo.main()
+        cls()
+
 
     def __init__(self):
         w, h = ui.get_window_size()
@@ -79,3 +79,6 @@ class Demo():
 
     def update(self, renderer, time):
         pass
+
+
+Demo.run()
