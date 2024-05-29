@@ -84,27 +84,15 @@ class Demo:
         floor_geometry.reflectivity = 0.05
         tile_image = ui.Image.named("plf:Ground_DirtCenter")
         tile_number = 5
-        # fmt: on
-        tile_factor = scn.Matrix4(
-            tile_number,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            tile_number,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            tile_number,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-        )
         # fmt: off
-        
+        tile_factor = scn.Matrix4(
+            tile_number, 0.0, 0.0,  0.0,
+            0.0, tile_number, 0.0, 0.0,
+            0.0, 0.0, tile_number, 0.0,
+            0.0, 0.0, 0.0, 1.0,
+        )
+        # fmt: on
+
         floor_geometry.firstMaterial.diffuse.contents = tile_image
         floor_geometry.firstMaterial.diffuse.intensity = 0.8
         floor_geometry.firstMaterial.diffuse.contentsTransform = tile_factor
