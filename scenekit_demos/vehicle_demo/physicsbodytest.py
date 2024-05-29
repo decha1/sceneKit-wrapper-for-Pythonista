@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename="example.log", encoding="utf-8", level=logging.DEBUG)
 
-class db(Enum):
+class db:
     OptionNone = scn.DebugOption.OptionNone,
     ShowBoundingBoxes = scn.DebugOption.ShowBoundingBoxes,
     ShowWireframe = scn.DebugOption.ShowWireframe,
@@ -39,7 +39,7 @@ class Demo():
 
         self.ui_view = self.make_ui_view(w, h)
 
-        self.scn_view = self.make_scn_view(w, h)
+        self.scn_view = self.make_scn_view(self.ui_view)
         self.ui_view.add_subview(self.scn_view)
         self.scn_view.delegate = self
         
@@ -58,12 +58,11 @@ class Demo():
         
         return ui_view
     
-    def make_scn_view(self, w, h):
-        scn_view = scn.View()
+    def make_scn_view(self, ui_view):
+        scn_view = scn.View(frame = ui_view.bounds, superView = ui_view)
         scn_view.preferredFramesPerSecond = 30
         scn_view.debugOptions = db.ShowPhysicsShapes
 
-        scn_view.frame = (0, 0, w, h)
         scn_view.autoresizingMask = (scn.ViewAutoresizing.FlexibleHeight | scn.ViewAutoresizing.FlexibleWidth)
         scn_view.allowsCameraControl = True
         scn_view.showsStatistics = True
