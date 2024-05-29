@@ -115,7 +115,7 @@ class Demo():
 
         light_node = scn.Node()
         light_node.position = (50, 50, 50)
-        light_node.lookAt(0, 0, 0)
+        light_node.lookAt((0, 0, 0))
         light = scn.Light()
         light.type = scn.LightTypeDirectional
         light.castsShadow = True
