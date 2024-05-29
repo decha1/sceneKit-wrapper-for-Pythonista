@@ -47,7 +47,7 @@ class Demo():
         self.scn_view.scene = self.scene
         self.scene.physicsWorld.contactDelegate = self
 
-
+        self.ui_view.present('full_screen', hide_title_bar=True)
 
 
     def make_ui_view(self, w, h):
