@@ -64,7 +64,7 @@ class Demo():
         scn_view.debugOptions = db.ShowPhysicsShapes
 
         scn_view.frame = (0, 0, w, h)
-        scn_view.autoresizingMask = scn.ViewAutoresizing.FlexibleHeight | scn.ViewAutoresizing.FlexibleWidth
+        scn_view.autoresizingMask = (scn.ViewAutoresizing.FlexibleHeight | scn.ViewAutoresizing.FlexibleWidth)
         scn_view.allowsCameraControl = True
         scn_view.showsStatistics = True
         scn_view.backgroundColor = (0.77, 0.97, 1.0)
