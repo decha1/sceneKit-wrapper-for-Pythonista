@@ -37,9 +37,9 @@ class Demo():
     def __init__(self):
         w, h = ui.get_window_size()
 
-        self.ui_view = self.make_ui_view(w,h)
+        self.ui_view = self.make_ui_view(w, h)
 
-        self.scn_view = self.make_scn_view()
+        self.scn_view = self.make_scn_view(w, h)
         self.ui_view.add_subview(self.scn_view)
         self.scn_view.delegate = self
         
