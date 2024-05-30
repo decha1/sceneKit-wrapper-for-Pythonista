@@ -15,6 +15,7 @@ logging.basicConfig(filename="example.log", encoding="utf-8", level=logging.DEBU
 
 db = scn.DebugOption
 
+
 class Demo:
     @classmethod
     def run(cls):
@@ -24,7 +25,7 @@ class Demo:
         w, h = ui.get_window_size()
 
         self.ui_view = self.make_ui_view(w, h)
-        
+
         self.scn_view = self.make_scn_view(self.ui_view)
         self.scn_view.delegate = self
 
@@ -41,9 +42,8 @@ class Demo:
         self.lights = self.make_lights()
         self.scene.rootNode.addChildNode(self.lights)
 
-
         self.car = Car(self.scene)
-        
+
         self.ui_view.present("full_screen")
 
     def make_ui_view(self, w, h):
@@ -55,7 +55,7 @@ class Demo:
     def make_scn_view(self, ui_view):
         scn_view = scn.View(frame=ui_view.bounds, superView=ui_view)
         scn_view.preferredFramesPerSecond = 30
-        #scn_view.debugOptions = db.ShowPhysicsShapes
+        # scn_view.debugOptions = db.ShowPhysicsShapes
         scn_view.autoresizingMask = (
             scn.ViewAutoresizing.FlexibleHeight | scn.ViewAutoresizing.FlexibleWidth
         )
@@ -124,7 +124,7 @@ class Demo:
         all_lights_node.addChildNode(ambient_node)
 
         return all_lights_node
-        
+
     def update(self, renderer, time):
         self.car.control()
 
@@ -132,17 +132,16 @@ class Demo:
 class Car(scn.Node):
     def control(self):
         self.physics_vehicle.applyEngineForce(1000, 0)
-        
+
     def __init__(self, scene: scn.Scene):
         super().__init__()
-        
+
         scene.rootNode.addChildNode(self)
         self.position = (0, 10, 10)
-        
+
         self.body = self.add_body_without_wheels()
-        self.wheels = self.build_and_attach_wheels()    
-    
-    
+        self.wheels = self.build_and_attach_wheels()
+
         physicsBody = scn.PhysicsBody.dynamicBody()
         physicsBody.allowsResting = False
         physicsBody.mass = 1200
@@ -150,11 +149,9 @@ class Car(scn.Node):
         physicsBody.damping = 0.3
         physicsBody.physicsShape = scn.PhysicsShape(self)
         self.physicsBody = physicsBody
-        
-        physics_wheels = [
-            scn.PhysicsVehicleWheel(node=wheel) for wheel in self.wheels
-        ]
-        
+
+        physics_wheels = [scn.PhysicsVehicleWheel(node=wheel) for wheel in self.wheels]
+
         self.physics_vehicle = scn.PhysicsVehicle(
             chassisBody=self.physicsBody, wheels=physics_wheels
         )
@@ -170,7 +167,7 @@ class Car(scn.Node):
 
         body_node = scn.Node.nodeWithGeometry(body)
         body_node.position = (0, 0.75, 0)
-        
+
         top = scn.Box(1.6, 0.6, 1.8, 0.1)
         top.firstMaterial = body_material
         top_node = scn.Node.nodeWithGeometry(top)
@@ -206,7 +203,6 @@ class Car(scn.Node):
         window_materials[2] = window_material
         for i in [1, 3, 4, 5]:
             window_materials[i] = body_material
-
 
         alpha = math.pi / 5
         frontW = scn.Box(1.4, 0.6 / math.cos(alpha), 0.1, 0.06)
@@ -256,7 +252,6 @@ class Car(scn.Node):
         rearW2_node.rotation = (1, 0, 0, alpha)
         body_node.addChildNode(rearW2_node)
 
-
         nose = scn.Pyramid(2 - 0.4, 0.15, 1 - 0.2)
         nose.firstMaterial = body_material
         nose_node = scn.Node.nodeWithGeometry(nose)
@@ -297,7 +292,7 @@ class Car(scn.Node):
         lamp_nodeL.position = (0.6, 0, 0.015)
         lamp_nodeL.rotation = (1, 0, 0, math.pi / 2)
         body_node.addChildNode(lamp_nodeL)
-        
+
         lampGlasFront_nodeR = scn.Node.nodeWithGeometry(lampGlasFront)
         lampGlasFront_nodeR.position = (0, 1.95, 0)
         lampGlasFront_nodeR.lookAt((0, 45, 10))
@@ -315,16 +310,15 @@ class Car(scn.Node):
         lampGlasBack_nodeL = scn.Node.nodeWithGeometry(lampGlasBack)
         lampGlasBack_nodeL.position = (0, -1.95, 0)
         lamp_nodeL.addChildNode(lampGlasBack_nodeL)
-        
+
         self.addChildNode(body_node)
         return body_node
-        
+
     def build_and_attach_wheels(self):
 
         tire = scn.Tube(0.12, 0.35, 0.25)
         tire.firstMaterial.diffuse.contents = "black"
         tire_node = scn.Node.nodeWithGeometry(tire)
-        #tire_node.rotation = (0, 0, 1, math.pi / 2)
 
         rim = scn.Cylinder(0.14, 0.1)
         rim.firstMaterial.diffuse.contents = "gray"
@@ -341,38 +335,59 @@ class Car(scn.Node):
         rim_deco_node.name = "deco"
         rim_deco_node.position = (-0.1, 0.03, -1.12)
         rim_deco_node.rotation = (1, 0, 0, math.pi / 2)
-        rim_node.addChildNode(rim_deco_node)
+        # rim_node.addChildNode(rim_deco_node)
 
-        #base wheel is tire+rim+rim deco lying flat
+        # base wheel is tire+rim+rim deco lying flat
         base_wheel_node = scn.Node()
         base_wheel_node.addChildNode(tire_node)
         base_wheel_node.addChildNode(rim_node)
+        base_wheel_node.addChildNode(rim_deco_node)
         base_wheel_node.name = "base-wheel"
 
         wheel_nodes = [scn.Node()]
-        
+
         # left front wheel
         wheel_nodes[0].addChildNode(base_wheel_node)
         wheel_nodes[0].position = (0.94, 0.4, 2 - 0.6)
-        wheel_nodes[0].childNodeWithName("base-wheel", True).rotation = (0, 0, 1, -math.pi/2) 
+        wheel_nodes[0].childNodeWithName("base-wheel", True).rotation = (
+            0,
+            0,
+            1,
+            -math.pi / 2,
+        )
 
         # right front wheel
         wheel_nodes.append(wheel_nodes[0].clone())
         wheel_nodes[1].position = (-0.94, 0.4, 2 - 0.6)
-        wheel_nodes[1].childNodeWithName("base-wheel", True).rotation = (0, 0, 1, +math.pi/2) 
-        
+        wheel_nodes[1].childNodeWithName("base-wheel", True).rotation = (
+            0,
+            0,
+            1,
+            +math.pi / 2,
+        )
+
         wheel_nodes.append(wheel_nodes[0].clone())
         wheel_nodes[2].position = (0.94, 0.4, -2 + 0.7)
-        wheel_nodes[2].childNodeWithName("base-wheel", True).rotation = (0, 0, 1, -math.pi/2) 
-        
+        wheel_nodes[2].childNodeWithName("base-wheel", True).rotation = (
+            0,
+            0,
+            1,
+            -math.pi / 2,
+        )
+
         wheel_nodes.append(wheel_nodes[0].clone())
         wheel_nodes[3].position = (-0.94, 0.4, -2 + 0.7)
-        wheel_nodes[3].childNodeWithName("base-wheel", True).rotation = (0, 0, 1, +math.pi/2)   
-         
+        wheel_nodes[3].childNodeWithName("base-wheel", True).rotation = (
+            0,
+            0,
+            1,
+            +math.pi / 2,
+        )
+
         for wheel in wheel_nodes:
             self.addChildNode(wheel)
-        
+
         return wheel_nodes
-    
-    
+
+
 Demo.run()
