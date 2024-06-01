@@ -43,9 +43,63 @@ class Demo:
         self.scene.rootNode.addChildNode(self.lights)
 
         self.car = Car(self.scene)
-
+        
+        '''
+        b = self.make_box(3, (0,10,0))
+            
+        physicsBody = scn.PhysicsBody.dynamicBody()
+        #physicsBody.allowsResting = False
+        physicsBody.mass = 1200
+        physicsBody.restitution = 0.1
+        physicsBody.damping = 0.3
+        #physicsBody.physicsShape = scn.PhysicsShape(self)
+        b.physicsBody = physicsBody
+        
+        
+        
+        wheel_nodes = [self.make_box(1,(5,0,5)),
+                        self.make_box(1,(5,0,-5)),
+                        self.make_box(1,(-5,0,5)),
+                        self.make_box(1,(-5,0,-5)),
+                        self.make_box(1,(8,0,8))
+                        ]
+        
+        for w in wheel_nodes:
+            w.eulerAngles = (0,0,math.pi)
+        physicsWheels= map(scn.PhysicsVehicleWheel, wheel_nodes)
+        
+        self.vehicle = scn.PhysicsVehicle(physicsBody,physicsWheels)
+        #print(self.vehicle)
+        self.scene.physicsWorld.addBehavior(self.vehicle)
+        
+        '''
         self.ui_view.present("full_screen")
-
+        
+        
+        
+    def make_box(self, size, position):
+        geometry = scn.Box(size,size,size)
+        r = scn.Material()
+        r.diffuse.contents = "red"
+        b = scn.Material()
+        b.diffuse.contents = "blue"
+        g = scn.Material()
+        g.diffuse.contents = "green"
+        lg = scn.Material()
+        lg.diffuse.contents = "lightgrey"
+        geometry.materials = [b, r,lg,lg,g,lg]
+        n = scn.Node.nodeWithGeometry(geometry )
+        
+        
+        
+        
+        q=scn.Node()
+        q.position = position
+        q.addChildNode(n)
+        self.scene.rootNode.addChildNode(q)
+        return q
+        
+        
     def make_ui_view(self, w, h):
         ui_view = ui.View()
         ui_view.frame = (0, 0, w, h)
@@ -55,13 +109,13 @@ class Demo:
     def make_scn_view(self, ui_view):
         scn_view = scn.View(frame=ui_view.bounds, superView=ui_view)
         scn_view.preferredFramesPerSecond = 30
-        # scn_view.debugOptions = db.ShowPhysicsShapes
+        scn_view.debugOptions = db.ShowPhysicsShapes# | db.RenderAsWireframe
         scn_view.autoresizingMask = (
             scn.ViewAutoresizing.FlexibleHeight | scn.ViewAutoresizing.FlexibleWidth
         )
         scn_view.allowsCameraControl = True
         scn_view.showsStatistics = True
-        scn_view.backgroundColor = (0.77, 0.97, 1.0)
+        scn_view.backgroundColor = "black"
         return scn_view
 
     def make_scene(self):
@@ -126,8 +180,9 @@ class Demo:
         return all_lights_node
 
     def update(self, renderer, time):
+        #return 
         self.car.control()
-
+        #self.vehicle.applyEngineForce(1000)
 
 class Car(scn.Node):
     def control(self):
@@ -137,27 +192,39 @@ class Car(scn.Node):
         super().__init__()
 
         scene.rootNode.addChildNode(self)
-        self.position = (0, 10, 10)
+        #self.position = (0, 10, 0)
 
         self.body = self.add_body_without_wheels()
         self.wheels = self.build_and_attach_wheels()
-
+        
+        physics_wheels = [scn.PhysicsVehicleWheel(node=self.wheels[0]),
+        scn.PhysicsVehicleWheel(node=self.wheels[1]),
+        scn.PhysicsVehicleWheel(node=self.wheels[2]),
+        scn.PhysicsVehicleWheel(node=self.wheels[3])]
+        
+        
         physicsBody = scn.PhysicsBody.dynamicBody()
         physicsBody.allowsResting = False
         physicsBody.mass = 1200
         physicsBody.restitution = 0.1
         physicsBody.damping = 0.3
-        physicsBody.physicsShape = scn.PhysicsShape(self)
+        #physicsBody.physicsShape = scn.PhysicsShape(self)
         self.physicsBody = physicsBody
-
-        physics_wheels = [scn.PhysicsVehicleWheel(node=wheel) for wheel in self.wheels]
-
+        
         self.physics_vehicle = scn.PhysicsVehicle(
             chassisBody=self.physicsBody, wheels=physics_wheels
         )
+        #self.wheels[0].rotation = (1,1,1, math.pi)
+        #self.wheels[0].rotation = (1,0,0,math.pi)
         scene.physicsWorld.addBehavior(self.physics_vehicle)
+        
 
     def add_body_without_wheels(self):
+        z = scn.Node.nodeWithGeometry(scn.Box(.5,.5,.5,0))
+        z.firstMaterial = scn.Material().diffuse.contents = "red"
+        self.addChildNode(z)
+        return z
+        
         body_material = scn.Material()
         body_material.diffuse.contents = "#ff0000"
         body_material.specular.contents = (0.88, 0.88, 0.88)
@@ -337,57 +404,71 @@ class Car(scn.Node):
         rim_deco_node.rotation = (1, 0, 0, math.pi / 2)
         # rim_node.addChildNode(rim_deco_node)
 
+        sp = scn.Node(scn.Sphere(0.1))
+        sp.position = (1,1,1)
+        
+        
         # base wheel is tire+rim+rim deco lying flat
         base_wheel_node = scn.Node()
         base_wheel_node.addChildNode(tire_node)
-        base_wheel_node.addChildNode(rim_node)
-        base_wheel_node.addChildNode(rim_deco_node)
+        #base_wheel_node.addChildNode(rim_node)
+        #base_wheel_node.addChildNode(rim_deco_node)
+        base_wheel_node.addChildNode(sp)
         base_wheel_node.name = "base-wheel"
-
+        #base_wheel_node.rotation = (0, 0, 1, math.pi/2)
+        n = scn.Node()
+        cl = base_wheel_node.clone()
+        cl.position = (5,0,5)
+        
+         
+        
+        n.addChildNode(cl)
+        self.addChildNode(n)
+        
         wheel_nodes = [scn.Node()]
-
         # left front wheel
         wheel_nodes[0].addChildNode(base_wheel_node)
         wheel_nodes[0].position = (0.94, 0.4, 2 - 0.6)
+        '''
         wheel_nodes[0].childNodeWithName("base-wheel", True).rotation = (
             0,
             0,
-            1,
+            0,
             -math.pi / 2,
-        )
+        )'''
 
         # right front wheel
         wheel_nodes.append(wheel_nodes[0].clone())
         wheel_nodes[1].position = (-0.94, 0.4, 2 - 0.6)
-        wheel_nodes[1].childNodeWithName("base-wheel", True).rotation = (
+        '''wheel_nodes[1].childNodeWithName("base-wheel", True).rotation = (
             0,
             0,
             1,
             +math.pi / 2,
-        )
+        )'''
 
         wheel_nodes.append(wheel_nodes[0].clone())
         wheel_nodes[2].position = (0.94, 0.4, -2 + 0.7)
-        wheel_nodes[2].childNodeWithName("base-wheel", True).rotation = (
+        '''wheel_nodes[2].childNodeWithName("base-wheel", True).rotation = (
             0,
             0,
             1,
             -math.pi / 2,
-        )
+        )'''
 
         wheel_nodes.append(wheel_nodes[0].clone())
         wheel_nodes[3].position = (-0.94, 0.4, -2 + 0.7)
-        wheel_nodes[3].childNodeWithName("base-wheel", True).rotation = (
+        '''wheel_nodes[3].childNodeWithName("base-wheel", True).rotation = (
             0,
             0,
             1,
             +math.pi / 2,
-        )
+        )'''
 
         for wheel in wheel_nodes:
             self.addChildNode(wheel)
 
-        return wheel_nodes
+        return [n] #wheel_nodes
 
 
 Demo.run()
