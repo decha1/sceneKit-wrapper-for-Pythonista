@@ -6,6 +6,7 @@ import random
 from enum import Enum
 import weakref
 import os
+from car import Car
 
 import logging
 
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(filename="debug.log", encoding="utf-8", level=logging.DEBUG)
 
 db = scn.DebugOption
-
+debug_options = db.ShowPhysicsShapes# | db.RenderAsWireframe
 
 class Demo:
     @classmethod
@@ -41,57 +42,46 @@ class Demo:
         self.lights = self.make_lights()
         self.scene.rootNode.addChildNode(self.lights)
 
-        self.car = Car(self.scene)
-
-        """ 
-
-            
-        physicsBody = scn.PhysicsBody.dynamicBody()
-        #physicsBody.allowsResting = False
-        physicsBody.mass = 1200
-        physicsBody.restitution = 0.1
-        physicsBody.damping = 0.3
-        #physicsBody.physicsShape = scn.PhysicsShape(self)
-        b.physicsBody = physicsBody
-        
-        
-        
-        wheel_nodes = [self.make_box(1,(5,0,5)),
-                        self.make_box(1,(5,0,-5)),
-                        self.make_box(1,(-5,0,5)),
-                        self.make_box(1,(-5,0,-5)),
-                        self.make_box(1,(8,0,8))
-                        ]
-        
-        for w in wheel_nodes:
-            w.eulerAngles = (0,0,math.pi)
-        physicsWheels= map(scn.PhysicsVehicleWheel, wheel_nodes)
-        
-        self.vehicle = scn.PhysicsVehicle(physicsBody,physicsWheels)
-        #print(self.vehicle)
-        self.scene.physicsWorld.addBehavior(self.vehicle)
-        
-        """
+        self.car = Car(scene=self.scene, simple=False)
+        cars_properties = [
+            dict(name="red", position=(5, 0, 0), volume=1.0),
+            dict(
+                name="yellow",
+                too_far=25,
+                body_color=(1.0, 0.78, 0.0),
+                position=(-5, 0, -2),
+                sound="game:Pulley",
+                volume=0.1,
+            ),
+            dict(
+                name="blue",
+                too_far=30,
+                body_color=(0.0, 0.61, 1.0),
+                position=(-12, 0, -6),
+                sound="game:Woosh_1",
+                volume=0.5,
+            ),
+            dict(
+                name="green",
+                too_far=18,
+                body_color=(0.0, 0.82, 0.28),
+                position=(10, 0, -10),
+                sound="casino:DiceThrow3",
+                volume=0.8,
+            ),
+            dict(
+                name="pink",
+                too_far=20,
+                body_color=(0.91, 0.52, 0.62),
+                position=(5, 0, 10),
+                sound="casino:DieThrow3",
+                volume=0.5,
+            ),
+        ]
+        self.cars = [
+            Car(scene=self, properties=a_car_properties) for a_car_properties in cars_properties
+        ]
         self.ui_view.present("full_screen")
-
-    def make_box(self, size, position):
-        geometry = scn.Box(size, size, size)
-        r = scn.Material()
-        r.diffuse.contents = "red"
-        b = scn.Material()
-        b.diffuse.contents = "blue"
-        g = scn.Material()
-        g.diffuse.contents = "green"
-        lg = scn.Material()
-        lg.diffuse.contents = "lightgrey"
-        geometry.materials = [b, r, lg, lg, g, lg]
-        n = scn.Node.nodeWithGeometry(geometry)
-
-        q = scn.Node()
-        q.position = position
-        q.addChildNode(n)
-        self.scene.rootNode.addChildNode(q)
-        return q
 
     def make_ui_view(self, w, h):
         ui_view = ui.View()
@@ -102,7 +92,7 @@ class Demo:
     def make_scn_view(self, ui_view):
         scn_view = scn.View(frame=ui_view.bounds, superView=ui_view)
         scn_view.preferredFramesPerSecond = 30
-        scn_view.debugOptions = db.ShowPhysicsShapes  # | db.RenderAsWireframe
+        scn_view.debugOptions = debug_options
         scn_view.autoresizingMask = (
             scn.ViewAutoresizing.FlexibleHeight | scn.ViewAutoresizing.FlexibleWidth
         )
@@ -146,7 +136,7 @@ class Demo:
         camera_node = scn.Node()
         camera_node.camera = scn.Camera()
         camera_node.camera.zFar = 150
-        camera_node.position = scn.Vector3(5, 10, 30)
+        camera_node.position = scn.Vector3(10, 10, 30)
         return camera_node
 
     def make_lights(self):
@@ -173,9 +163,8 @@ class Demo:
         return all_lights_node
 
     def update(self, renderer, time):
-        # return
+        #return
         self.car.control()
-        # self.vehicle.applyEngineForce(1000)
 
 
 Demo.run()
