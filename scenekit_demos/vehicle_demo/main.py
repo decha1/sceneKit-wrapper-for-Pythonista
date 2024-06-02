@@ -129,7 +129,7 @@ class Demo:
         return all_lights_node
 
     def update(self, renderer, time):
-        # return
+        return
         self.car.control()
 
 
