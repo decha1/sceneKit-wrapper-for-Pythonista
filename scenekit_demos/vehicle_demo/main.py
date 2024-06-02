@@ -44,7 +44,7 @@ class Demo:
         self.scene.rootNode.addChildNode(self.lights)
 
         self.cars = [
-            Car(scene=self, properties=a_car_properties, simple=True)
+            Car(scene=self.scene, properties=a_car_properties, simple=True)
             for a_car_properties in cars_properties
         ]
         self.ui_view.present("full_screen")
