@@ -1,6 +1,7 @@
 import sceneKit as scn
 import math
 
+
 class Car(scn.Node):
     def control(self):
         self.physics_vehicle.applyEngineForce(1000, 0)
@@ -8,8 +9,8 @@ class Car(scn.Node):
 
     def __init__(self, scene, properties, simple=False):
         super().__init__()
-        temp_node = scn.Node()
-        self.position = (0, 3, 0)
+
+        self.position = properties.pop("position", (0, 0, 0))
 
         if simple:
             body = self.simple_make_body_without_wheels()
@@ -19,74 +20,71 @@ class Car(scn.Node):
             wheels = self.make_wheels()
 
         self.addChildNode(body)
-        
-        
+
         scene.rootNode.addChildNode(self)
-        
+
         physicsBody = scn.PhysicsBody.dynamicBody()
         physicsBody.allowsResting = False
         physicsBody.mass = 1200
         physicsBody.restitution = 0.1
         physicsBody.damping = 0.3
-        
+
         self.physicsBody = physicsBody
-        #self.physicsBody.physicsShape = scn.PhysicsShape(node=self)
-        
+        # self.physicsBody.physicsShape = scn.PhysicsShape(node=self)
+
         for wheel in wheels:
             self.addChildNode(wheel)
-            
+
         physics_wheels = map(scn.PhysicsVehicleWheel, wheels)
         self.physics_vehicle = scn.PhysicsVehicle(
             chassisBody=physicsBody, wheels=physics_wheels
         )
         scene.physicsWorld.addBehavior(self.physics_vehicle)
-        
-        
+
     def simple_make_body_without_wheels(self):
         body = self.make_box(1)
-        body.position=(0,0.75,0)
+        body.position = (0, 0.75, 0)
         a = self.make_box(2)
-        a.position=(0,0,0)
-        #body.addChildNode(a)
+        a.position = (0, 0, 0)
+        # body.addChildNode(a)
         return body
-        
+
     def simple_make_wheels(self):
-        #wheel = self.make_box(1)
+        # wheel = self.make_box(1)
         base_wheel = self.make_tube(0.3, 0.5, 0.2)
-        
+
         # rotate whee for right sided wheels
-        base_wheel.rotation = (0,0,1, -math.pi/2)
-        
-        
+        base_wheel.rotation = (0, 0, 1, -math.pi / 2)
+
         fr_wheel = scn.Node()
         fr_wheel.addChildNode(base_wheel.clone())
         fr_wheel.position = (-1, 0, 1)
-        
+
         br_wheel = scn.Node()
         br_wheel.addChildNode(base_wheel.clone())
         br_wheel.position = (-1, 0, -1)
-        
-        #rotate wheel for left sided wheels
-        base_wheel.rotation = (0,0,1, math.pi/2)
+
+        # rotate wheel for left sided wheels
+        base_wheel.rotation = (0, 0, 1, math.pi / 2)
         fl_wheel = scn.Node()
         fl_wheel.addChildNode(base_wheel.clone())
         fl_wheel.position = (1, 0, 1)
-        
+
         bl_wheel = scn.Node()
         bl_wheel.addChildNode(base_wheel.clone())
         bl_wheel.position = (1, 0, -1)
-        
+
         wheels = [fr_wheel, br_wheel, fl_wheel, bl_wheel]
         return wheels
 
     def make_tube(self, inner, outer, thickness):
         geometry = scn.Tube(inner, outer, thickness)
-        #lg = scn.Material()
-        #lg.diffuse.contents = "lightgrey"
-        #geometry.materials = [lg]
-        
+        # lg = scn.Material()
+        # lg.diffuse.contents = "lightgrey"
+        # geometry.materials = [lg]
+
         return scn.Node.nodeWithGeometry(geometry)
-        
+
     def make_box(self, size):
         geometry = scn.Box(size, size, size)
         r = scn.Material()
@@ -113,14 +111,13 @@ class Car(scn.Node):
 
         body_node = scn.Node.nodeWithGeometry(body)
         body_node.position = (0, 0.75, 0)
-        
+
         top = scn.Box(1.6, 0.6, 1.8, 0.1)
         top.firstMaterial = body_material
         top_node = scn.Node.nodeWithGeometry(top)
         top_node.position = (0, 0.5 + 0.2, 0)
         body_node.addChildNode(top_node)
-        
-        
+
         door1 = scn.Box(2.02, 1 - 0.2, 1.8 / 2.2, 0.08)
         door1.firstMaterial = body_material
         door1_node = scn.Node.nodeWithGeometry(door1)
@@ -130,7 +127,7 @@ class Car(scn.Node):
         door2_node = scn.Node.nodeWithGeometry(door1)
         door2_node.position = (0, 0.1, -1.8 / 4 + 0.1)
         body_node.addChildNode(door2_node)
-        
+
         window_material = scn.Material()
         window_material.diffuse.contents = (0.64, 0.71, 0.75, 0.6)
         window_material.specular.contents = (0.88, 0.88, 0.88, 0.8)
@@ -261,7 +258,7 @@ class Car(scn.Node):
         return body_node
 
     def make_wheels(self):
-        #return []
+        # return []
         tire = scn.Tube(0.12, 0.35, 0.25)
         tire.firstMaterial.diffuse.contents = "black"
         tire_node = scn.Node.nodeWithGeometry(tire)
@@ -289,35 +286,31 @@ class Car(scn.Node):
         base_wheel_node.addChildNode(rim_node)
         base_wheel_node.addChildNode(rim_deco_node)
         base_wheel_node.name = "base-wheel"
-        
-        #rotate base for left-sided wheels
-        base_wheel_node.rotation = (0, 0, 1, -math.pi/2)
-        
+
+        # rotate base for left-sided wheels
+        base_wheel_node.rotation = (0, 0, 1, -math.pi / 2)
+
         fl_wheel = scn.Node()
         fl_wheel.name = "front-left wheel"
         fl_wheel.addChildNode(base_wheel_node.clone())
         fl_wheel.position = (0.94, 0.4, 2 - 0.6)
-        
+
         bl_wheel = scn.Node()
         bl_wheel.name = "back-left wheel"
         bl_wheel.addChildNode(base_wheel_node.clone())
         bl_wheel.position = (0.94, 0.4, -2 + 0.7)
 
-        #rotate base for right-sided wheels
-        base_wheel_node.rotation = (0, 0, 1, math.pi/2)
-        
+        # rotate base for right-sided wheels
+        base_wheel_node.rotation = (0, 0, 1, math.pi / 2)
+
         fr_wheel = scn.Node()
         fr_wheel.name = "front-right wheel"
         fr_wheel.addChildNode(base_wheel_node.clone())
         fr_wheel.position = (-0.94, 0.4, 2 - 0.6)
-        
+
         br_wheel = scn.Node()
         br_wheel.name = "back-right wheel"
         br_wheel.addChildNode(base_wheel_node.clone())
         br_wheel.position = (-0.94, 0.4, -2 + 0.7)
-        
-        
-        
-
 
         return [br_wheel, bl_wheel, fr_wheel, fl_wheel]  # wheel_nodes

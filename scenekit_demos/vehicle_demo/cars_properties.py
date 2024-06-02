@@ -1,0 +1,35 @@
+cars_properties = [
+    dict(name="red", position=(5, 0, 0), volume=1.0),
+    dict(
+        name="yellow",
+        too_far=25,
+        body_color=(1.0, 0.78, 0.0),
+        position=(-5, 0, -2),
+        sound="game:Pulley",
+        volume=0.1,
+    ),
+    dict(
+        name="blue",
+        too_far=30,
+        body_color=(0.0, 0.61, 1.0),
+        position=(-12, 0, -6),
+        sound="game:Woosh_1",
+        volume=0.5,
+    ),
+    dict(
+        name="green",
+        too_far=18,
+        body_color=(0.0, 0.82, 0.28),
+        position=(10, 0, -10),
+        sound="casino:DiceThrow3",
+        volume=0.8,
+    ),
+    dict(
+        name="pink",
+        too_far=20,
+        body_color=(0.91, 0.52, 0.62),
+        position=(5, 0, 10),
+        sound="casino:DieThrow3",
+        volume=0.5,
+    ),
+]
