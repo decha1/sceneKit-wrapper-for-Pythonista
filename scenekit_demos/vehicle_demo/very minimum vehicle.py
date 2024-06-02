@@ -1,3 +1,17 @@
+'''
+This file is a working example of a single car of the vehicle demo.
+Interesting points :
+    1. the physicsBody object will not give a correct physicsShape object if the node you are working with is not part of a scene. You should add the node as a child of a scene, then assign a physicsBody to the node. If you assign a physicsBody to a node before adding the node to a scene, the physicsShape of children nodes will not be correctly placed relative to each other. If a physicsBody is assigned before adding the node to a scene, you can create a new physicsShape object and assign it to the physicsBody and this will also work.
+    
+    2. adding a physicsVehicle to a scene's physicsBehavior will change the wheels orientation to change relative to the car. The wheels appear to be rotated in place 180 degrees CCW along the +z axis and 90 degrees CW along the +x axis (both looking towards the origin). The rest of the vehicle does not seem to be changed.
+    
+    3. changing the steeringAxis or the Axis of a vehiclePhysicsWheel results in changes of position and rotation of the wheel
+    
+    The mechanism of how wheel position and rotation are determined once a physicsVehicle is added to a scene's physicBehavior is not clear.
+'''
+
+
+
 import sceneKit as scn
 from objc_util import *
 import sceneKit as scn
