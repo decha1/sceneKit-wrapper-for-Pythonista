@@ -1,3 +1,17 @@
+'''
+This file is a working example of a single car of the vehicle demo.
+Interesting points :
+    1. the physicsBody object will not give a correct physicsShape object if the node you are working with is not part of a scene. You should add the node as a child of a scene, then assign a physicsBody to the node. If you assign a physicsBody to a node before adding the node to a scene, the physicsShape of children nodes will not be correctly placed relative to each other. If a physicsBody is assigned before adding the node to a scene, you can create a new physicsShape object and assign it to the physicsBody and this will also work.
+    
+    2. adding a physicsVehicle to a scene's physicsBehavior will change the wheels orientation to change relative to the car. The wheels appear to be rotated in place 180 degrees CCW along the +z axis and 90 degrees CW along the +x axis (both looking towards the origin). The rest of the vehicle does not seem to be changed.
+    
+    3. changing the steeringAxis or the Axis of a vehiclePhysicsWheel results in changes of position and rotation of the wheel
+    
+    The mechanism of how wheel position and rotation are determined once a physicsVehicle is added to a scene's physicBehavior is not clear.
+'''
+
+
+
 import sceneKit as scn
 from objc_util import *
 import sceneKit as scn
@@ -107,7 +121,7 @@ class Demo:
 
         light_node = scn.Node()
         light_node.position = (50, 50, 50)
-        light_node.lookAt(0, 0, 0)
+        light_node.lookAt((0, 0, 0))
         light = scn.Light()
         light.type = scn.LightTypeDirectional
         light.castsShadow = True
@@ -127,10 +141,12 @@ class Demo:
     
     def update(self,a,b):
         self.car.control()
+        pass
         
 class Car:
     def __init__(self, world=None, props={}):
         self.world = world
+        
         self.physics_world = world.physicsWorld
         self.buildCar()
         self.chassis_node.position = props.pop("position", (0, 0, 0))
@@ -143,7 +159,7 @@ class Car:
         self.node = self.chassis_node
         self.position = self.chassis_node.position
         
-        self.world.rootNode.addChildNode(self.chassis_node)
+        
         self.physics_world.addBehavior(self.physics_vehicle)
     
     def control(self):
@@ -151,10 +167,12 @@ class Car:
     
     def buildCar(self):
         self.chassis_node = scn.Node()
-
+        self.world.rootNode.addChildNode(self.chassis_node)
         car_without_wheels = self.build_body_without_wheels()
+        print(self.chassis_node)
+        print(car_without_wheels)
         self.chassis_node.addChildNode(car_without_wheels)
-        
+        print('iiiii')
         wheel_nodes = self.build_wheels()
         for wheel_node in wheel_nodes:
             self.chassis_node.addChildNode(wheel_node)
@@ -188,7 +206,10 @@ class Car:
                   
                   '\n',
                   sep='\n')
-
+        
+        xxx = self.physics_vehicle.getWheels()
+        #xxx[0].axle = (.5,.5,.5)
+        xxx[0].steeringAxis = (0,1,0)
     def build_body_without_wheels(self):
         body_material = scn.Material()
         body_material.diffuse.contents = "#ff0000"
@@ -328,7 +349,7 @@ class Car:
         lamp_nodeL.rotation = (1, 0, 0, math.pi / 2)
         body_node.addChildNode(lamp_nodeL)
 
-        return body_node
+        
     
         lampGlasFront_nodeR = scn.Node.nodeWithGeometry(lampGlasFront)
         lampGlasFront_nodeR.position = (0, 1.95, 0)
@@ -338,17 +359,22 @@ class Car:
         lampGlasBack_nodeR = scn.Node.nodeWithGeometry(lampGlasBack)
         lampGlasBack_nodeR.position = (0, -1.95, 0)
         lamp_nodeR.addChildNode(lampGlasBack_nodeR)
-
+        
         lampGlasFront_nodeL = scn.Node.nodeWithGeometry(lampGlasFront)
+        
         lampGlasFront_nodeL.position = (0, 1.95, 0)
         lampGlasFront_nodeL.lookAt((0, 45, 10))
         lampGlasFront_nodeL.light = front_spot
+        
         lamp_nodeL.addChildNode(lampGlasFront_nodeL)
+        
         lampGlasBack_nodeL = scn.Node.nodeWithGeometry(lampGlasBack)
         lampGlasBack_nodeL.position = (0, -1.95, 0)
+    
         lamp_nodeL.addChildNode(lampGlasBack_nodeL)
-
-
+        
+        return body_node
+        
 
     def build_wheels(self):
 
