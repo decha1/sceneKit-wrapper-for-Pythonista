@@ -7,16 +7,22 @@ class Car(scn.Node):
         self.physics_vehicle.applyEngineForce(1000, 0)
         self.physics_vehicle.applyEngineForce(1000, 1)
 
-    def __init__(self, scene, properties, simple=False):
+    def __init__(self, scene, properties={}, simple=False):
         super().__init__()
 
-        self.position = properties.pop("position", (0, 0, 0))
-
         if simple:
-            body = self.simple_make_body_without_wheels()
+            position = properties.pop("position", (0, 0, 0))
+            new_position = (position[0], position[1] + 5, position[2])
+            self.position = new_position
+            body = self.simple_make_body()
             wheels = self.simple_make_wheels()
         else:
-            body = self.make_body_without_wheels()
+            self.position = properties.pop("position", (0, 0, 0))
+            body = self.make_body(
+                body_color=properties.pop("body_color", (0.6, 0.0, 0.0)),
+                sound_file=properties.pop("sound", "casino:DiceThrow2"),
+                sound_volume=properties.pop("volume", 1.0),
+            )
             wheels = self.make_wheels()
 
         self.addChildNode(body)
@@ -41,7 +47,7 @@ class Car(scn.Node):
         )
         scene.physicsWorld.addBehavior(self.physics_vehicle)
 
-    def simple_make_body_without_wheels(self):
+    def simple_make_body(self):
         body = self.make_box(1)
         body.position = (0, 0.75, 0)
         a = self.make_box(2)
@@ -100,10 +106,10 @@ class Car(scn.Node):
 
         return scn.Node.nodeWithGeometry(geometry)
 
-    def make_body_without_wheels(self):
+    def make_body(self, body_color, sound_file, sound_volume):
 
         body_material = scn.Material()
-        body_material.diffuse.contents = "#ff0000"
+        body_material.diffuse.contents = body_color
         body_material.specular.contents = (0.88, 0.88, 0.88)
 
         body = scn.Box(2, 1, 4, 0.2)
