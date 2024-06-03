@@ -52,7 +52,7 @@ class Demo:
         self.is_close_button_clicked = False
         self.is_shutting_down = False
 
-        self.main_view.present(style="fullscreen", hide_title_bar=True)
+        self.ui_view.present(style="fullscreen", hide_title_bar=True)
 
     def make_ui_view(self, w, h):
         ui_view = ui.View()
