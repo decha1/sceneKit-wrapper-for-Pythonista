@@ -267,25 +267,22 @@ class Car(scn.Node):
 
         # -----------------------------------------------------------------
         # add sound to the car
-        sound_file = (properties.pop("sound", "casino:DiceThrow2"),)
-        sound_volume = (properties.pop("volume", 1.0),)
+        sound_file = properties.pop("sound", "casino:DiceThrow2")
+        sound_volume = properties.pop("volume", 1.0)
         sound = scn.AudioSource(sound_file)
         sound.load()
         sound.loops = True
         sound.volume = sound_volume
-        sound_player = scn.AudioPlayer.audioPlayerWithSource(self.sound)
+        sound_player = scn.AudioPlayer.audioPlayerWithSource(sound)
         self.addAudioPlayer(sound_player)
 
         self.name = properties.pop("name", "car")
-        self.chassis_node.name = self.name
         self.program_table = [aProg(self) for aProg in Car.programs]
         self.current_program = CarProgram.idle
         self.program_stack = [self.current_program]
         self.brake_light = False
         self.too_far = properties.pop("too_far", 30)
         self.current_speed = 0
-        # self.node = self.chassis_node
-        self.position = self.chassis_node.position
 
     def shutdown(self):
         self.removeAllAudioPlayers()
