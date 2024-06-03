@@ -259,7 +259,7 @@ class Car(scn.Node):
         self.physicsBody = physicsBody
         # self.physicsBody.physicsShape = scn.PhysicsShape(node=self)
 
-        physics_wheels = [scn.PhysicsVehicleWheel(wheel) for wheel in wheels]
+        physics_wheels = [scn.PhysicsVehicleWheel(wheel) for wheel in self.wheels]
         physics_wheels[0].suspensionRestLength = 1.3
         physics_wheels[1].suspensionRestLength = 1.3
         physics_wheels[2].suspensionRestLength = 1.4
