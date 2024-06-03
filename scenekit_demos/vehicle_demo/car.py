@@ -4,6 +4,25 @@ import random
 from enum import IntEnum
 import weakref
 
+MAXACTIVEREVERSE = 2
+DEBUG = False
+
+
+def dist(a, b):
+    return math.sqrt(sum((x - y) ** 2 for x, y in zip(list(a), list(b))))
+
+
+def length(a):
+    return math.sqrt(sum(x**2 for x in a))
+
+
+def dot(v1, v2):
+    return sum(x * y for x, y in zip(list(v1), list(v2)))
+
+
+def det2(v1, v2):
+    return v1[0] * v2[1] - v1[1] * v2[0]
+
 
 class CarProgram(IntEnum):
     idle = 0
@@ -217,9 +236,7 @@ class Car(scn.Node):
         else:
             self.position = properties.pop("position", (0, 0, 0))
             body = self.make_body(
-                body_color=properties.pop("body_color", (0.6, 0.0, 0.0)),
-                sound_file=properties.pop("sound", "casino:DiceThrow2"),
-                sound_volume=properties.pop("volume", 1.0),
+                body_color=properties.pop("body_color", (0.6, 0.0, 0.0))
             )
             wheels = self.make_wheels()
 
@@ -247,6 +264,17 @@ class Car(scn.Node):
             chassisBody=physicsBody, wheels=physics_wheels
         )
         scene.physicsWorld.addBehavior(self.physics_vehicle)
+
+        # -----------------------------------------------------------------
+        # add sound to the car
+        sound_file = (properties.pop("sound", "casino:DiceThrow2"),)
+        sound_volume = (properties.pop("volume", 1.0),)
+        sound = scn.AudioSource(sound_file)
+        sound.load()
+        sound.loops = True
+        sound.volume = sound_volume
+        sound_player = scn.AudioPlayer.audioPlayerWithSource(self.sound)
+        self.addAudioPlayer(sound_player)
 
         self.name = properties.pop("name", "car")
         self.chassis_node.name = self.name
@@ -318,7 +346,7 @@ class Car(scn.Node):
 
         return scn.Node.nodeWithGeometry(geometry)
 
-    def make_body(self, body_color, sound_file, sound_volume):
+    def make_body(self, body_color):
 
         body_material = scn.Material()
         body_material.diffuse.contents = body_color
