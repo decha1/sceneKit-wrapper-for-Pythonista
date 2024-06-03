@@ -48,6 +48,9 @@ class Demo:
             Car(scene=self.scene, properties=a_car_properties, simple=True)
             for a_car_properties in cars_properties
         ]
+
+        self.is_close_button_clicked = False
+        self.is_shutting_down = False
         self.ui_view.present("full_screen")
 
     def make_ui_view(self, w, h):
@@ -137,7 +140,7 @@ class Demo:
         return all_lights_node
 
     def close_button_action(self, sender):
-        self.is_closing = True
+        self.is_close_button_clicked = True
         self.ui_view.remove_subview(self.close_button)
 
     def shutdown(self):
@@ -146,7 +149,7 @@ class Demo:
             car.shutdown()
 
     def update(self, renderer, time):
-        if self.is_closing:
+        if self.is_close_button_clicked:
             if not self.is_shutting_down:
                 self.shutdown()
             return
