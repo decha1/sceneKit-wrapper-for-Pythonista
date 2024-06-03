@@ -41,7 +41,7 @@ class Demo:
         self.scene.rootNode.addChildNode(self.make_lights())
 
         self.cars = [
-            Car(scene=self.scene, properties=a_car_properties, simple=True)
+            Car(scene=self.scene, properties=a_car_properties, simple=False)
             for a_car_properties in cars_properties
         ]
 
