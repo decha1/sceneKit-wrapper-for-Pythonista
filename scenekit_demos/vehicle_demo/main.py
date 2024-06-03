@@ -58,8 +58,8 @@ class Demo:
 
     def make_close_button(self):
         close_button = ui.Button()
-        self.close_button.frame = (20, 40, 40, 40)
-        self.close_button.background_image = ui.Image.named("emj:No_Entry_2")
+        close_button.frame = (20, 40, 40, 40)
+        close_button.background_image = ui.Image.named("emj:No_Entry_2")
         close_button.action = self.close_button_action
         return close_button
 
