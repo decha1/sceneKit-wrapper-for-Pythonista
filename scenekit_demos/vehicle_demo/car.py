@@ -315,6 +315,9 @@ class Car(scn.Node):
         self.too_far = properties.pop("too_far", 30)
         self.current_speed = 0
 
+    def trackParticleEventBlock(self, propValues, prop, particleIndex):
+        propValues[1] = 0.0
+
     def shutdown(self):
         self.removeAllAudioPlayers()
 
