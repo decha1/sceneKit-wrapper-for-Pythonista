@@ -260,6 +260,12 @@ class Car(scn.Node):
         # self.physicsBody.physicsShape = scn.PhysicsShape(node=self)
 
         physics_wheels = map(scn.PhysicsVehicleWheel, wheels)
+        physics_wheels[0].suspensionRestLength = 1.3
+        physics_wheels[1].suspensionRestLength = 1.3
+        physics_wheels[2].suspensionRestLength = 1.4
+        physics_wheels[3].suspensionRestLength = 1.4
+        for wheel in physics_wheels:
+            wheel.maximumSuspensionTravel = 150
         self.physics_vehicle = scn.PhysicsVehicle(
             chassisBody=physicsBody, wheels=physics_wheels
         )
