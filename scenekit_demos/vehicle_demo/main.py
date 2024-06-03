@@ -129,8 +129,8 @@ class Demo:
         return all_lights_node
 
     def update(self, renderer, time):
-        return
-        self.car.control()
+        for car in self.cars:
+            car.control()
 
 
 Demo.run()
