@@ -235,13 +235,13 @@ class Car(scn.Node):
             wheels = self.simple_make_wheels()
         else:
             self.position = properties.pop("position", (0, 0, 0))
-            body = self.make_body(
+            self.body = self.make_body(
                 body_color=properties.pop("body_color", (0.6, 0.0, 0.0))
             )
-            wheels = self.make_wheels()
+            self.wheels = self.make_wheels()
 
-        self.addChildNode(body)
-        for wheel in wheels:
+        self.addChildNode(self.body)
+        for wheel in self.wheels:
             self.addChildNode(wheel)
 
         # put this car in the scene.
@@ -281,6 +281,31 @@ class Car(scn.Node):
         sound.volume = sound_volume
         sound_player = scn.AudioPlayer.audioPlayerWithSource(sound)
         self.addAudioPlayer(sound_player)
+
+        # -----------------------------------------------------------------
+        # add tire tracks to the car
+        self.tire_tracks = scn.ParticleSystem()
+        self.tire_tracks.birthRate = 750
+        self.tire_tracks.loops = True
+        self.tire_tracks.emissionDuration = 0.1
+        self.tire_tracks.particleLifeSpan = 4.6
+        self.tire_tracks.particleLifeSpanVariation = 5
+        self.tire_tracks.particleSize = 0.02
+        self.tire_tracks.particleColor = (0.1, 0.1, 0.1, 1.0)
+        self.tire_tracks.particleColorVariation = (0.1, 0.1, 0.1, 0.1)
+        self.tire_tracks.blendMode = scn.ParticleBlendMode.Replace
+        self.tire_tracks.emitterShape = scn.Cylinder(0.02, 0.26)
+        self.tire_tracks.birthLocation = (
+            scn.ParticleBirthLocation.SCNParticleBirthLocationVolume
+        )
+        self.tire_tracks.handle(
+            scn.ParticleEvent.Birth,
+            [scn.ParticlePropertyPosition],
+            self.trackParticleEventBlock,
+        )
+
+        for wheel in self.wheels:
+            self.tire_node.addParticleSystem(wheel)
 
         self.name = properties.pop("name", "car")
         self.program_table = [aProg(self) for aProg in Car.programs]
@@ -514,6 +539,7 @@ class Car(scn.Node):
         tire = scn.Tube(0.12, 0.35, 0.25)
         tire.firstMaterial.diffuse.contents = "black"
         tire_node = scn.Node.nodeWithGeometry(tire)
+        tire_node.name = "tire"
 
         rim = scn.Cylinder(0.14, 0.1)
         rim.firstMaterial.diffuse.contents = "gray"
