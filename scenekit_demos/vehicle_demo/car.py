@@ -287,6 +287,9 @@ class Car(scn.Node):
         # self.node = self.chassis_node
         self.position = self.chassis_node.position
 
+    def shutdown(self):
+        self.removeAllAudioPlayers()
+
     def simple_make_body(self):
         body = self.make_box(1)
         body.position = (0, 0.75, 0)

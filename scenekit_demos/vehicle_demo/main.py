@@ -27,21 +27,22 @@ class Demo:
 
         self.ui_view = self.make_ui_view(w, h)
 
+        self.close_button = self.make_close_button()
+        self.ui_view.add_subview(self.close_button)
+        self.close_button.action = self.close_button_action
+
         self.scn_view = self.make_scn_view(self.ui_view)
         self.scn_view.delegate = self
 
         self.scene = self.make_scene()
-        self.scn_view.scene = self.scene
         self.scene.physicsWorld.contactDelegate = self
+        self.scn_view.scene = self.scene
 
-        self.floor = self.make_floor()
-        self.scene.rootNode.addChildNode(self.floor)
+        self.scene.rootNode.addChildNode(self.make_floor())
 
-        self.camera = self.make_camera()
-        self.scene.rootNode.addChildNode(self.camera)
+        self.scene.rootNode.addChildNode(self.make_camera())
 
-        self.lights = self.make_lights()
-        self.scene.rootNode.addChildNode(self.lights)
+        self.scene.rootNode.addChildNode(self.make_lights())
 
         self.cars = [
             Car(scene=self.scene, properties=a_car_properties, simple=True)
@@ -54,6 +55,13 @@ class Demo:
         ui_view.frame = (0, 0, w, h)
         ui_view.name = "vehicle demo"
         return ui_view
+
+    def make_close_button(self):
+        close_button = ui.Button()
+        self.close_button.frame = (20, 40, 40, 40)
+        self.close_button.background_image = ui.Image.named("emj:No_Entry_2")
+        close_button.action = self.close_button_action
+        return close_button
 
     def make_scn_view(self, ui_view):
         scn_view = scn.View(frame=ui_view.bounds, superView=ui_view)
@@ -128,7 +136,21 @@ class Demo:
 
         return all_lights_node
 
+    def close_button_action(self, sender):
+        self.is_closing = True
+        self.ui_view.remove_subview(self.close_button)
+
+    def shutdown(self):
+        self.is_shutting_down = True
+        for car in self.cars:
+            car.shutdown()
+
     def update(self, renderer, time):
+        if self.is_closing:
+            if not self.is_shutting_down:
+                self.shutdown()
+            return
+
         for car in self.cars:
             car.control()
 
