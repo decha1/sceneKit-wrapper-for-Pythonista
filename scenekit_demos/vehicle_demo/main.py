@@ -27,10 +27,6 @@ class Demo:
 
         self.ui_view = self.make_ui_view(w, h)
 
-        self.close_button = self.make_close_button()
-        self.ui_view.add_subview(self.close_button)
-        self.close_button.action = self.close_button_action
-
         self.scn_view = self.make_scn_view(self.ui_view)
         self.scn_view.delegate = self
 
@@ -49,8 +45,13 @@ class Demo:
             for a_car_properties in cars_properties
         ]
 
+        self.close_button = self.make_close_button()
+        self.close_button.action = self.close_button_action
+        self.ui_view.add_subview(self.close_button)
+
         self.is_close_button_clicked = False
         self.is_shutting_down = False
+
         self.main_view.present(style="fullscreen", hide_title_bar=True)
 
     def make_ui_view(self, w, h):
@@ -147,6 +148,7 @@ class Demo:
         self.is_shutting_down = True
         for car in self.cars:
             car.shutdown()
+        self.ui_view.close()
 
     def update(self, renderer, time):
         if self.is_close_button_clicked:
