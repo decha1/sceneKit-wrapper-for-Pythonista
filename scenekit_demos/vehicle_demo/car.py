@@ -1,3 +1,11 @@
+'''
+callback handler for particleSystem seems to cause the program to crash.
+need to test scenekit code
+callback handler not assigned in this code
+'''
+
+
+
 import sceneKit as scn
 import math
 import random
@@ -298,14 +306,17 @@ class Car(scn.Node):
         self.tire_tracks.birthLocation = (
             scn.ParticleBirthLocation.SCNParticleBirthLocationVolume
         )
+        
+        # program crashes if following line is run
+        '''
         self.tire_tracks.handle(
             scn.ParticleEvent.Birth,
             [scn.ParticlePropertyPosition],
             self.trackParticleEventBlock,
         )
-
+        '''
         for wheel in self.wheels:
-            self.tire_node.addParticleSystem(wheel)
+            wheel.addParticleSystem(self.tire_tracks)
 
         self.name = properties.pop("name", "car")
         self.program_table = [aProg(self) for aProg in Car.programs]
@@ -320,7 +331,9 @@ class Car(scn.Node):
 
     def shutdown(self):
         self.removeAllAudioPlayers()
-
+        for wheel in self.wheels:
+            wheel.removeAllParticleSystems()
+            
     def simple_make_body(self):
         body = self.make_box(1)
         body.position = (0, 0.75, 0)

@@ -1,3 +1,7 @@
+'''
+
+'''
+
 from objc_util import *
 import sceneKit as scn
 import ui
@@ -9,6 +13,7 @@ import os
 from car import Car
 from cars_properties import cars_properties
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename="debug.log", encoding="utf-8", level=logging.DEBUG)
@@ -140,18 +145,29 @@ class Demo:
 
         return all_lights_node
 
+    
     def close_button_action(self, sender):
+        # next line prevents multiple clicks of close button, not sure if necessary?
+        #self.ui_view.remove_subview(self.close_button)
+        
+        # trigger shutdown during next render update
         self.is_close_button_clicked = True
-        self.ui_view.remove_subview(self.close_button)
 
     def shutdown(self):
         self.is_shutting_down = True
+        
+        # don't know if the following pause statements actually do anything
+        self.scene.paused = True
+        self.scn_view.pause()
+        
         for car in self.cars:
             car.shutdown()
         self.ui_view.close()
 
     def update(self, renderer, time):
+        # update continues to be called even if scene or scene_view is paused
         if self.is_close_button_clicked:
+            # run shutdown only once, if already running, do not run again
             if not self.is_shutting_down:
                 self.shutdown()
             return
