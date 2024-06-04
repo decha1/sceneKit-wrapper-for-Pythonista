@@ -292,6 +292,7 @@ class Car(scn.Node):
 
         # -----------------------------------------------------------------
         # add tire tracks to the car
+        # todo: remove self
         self.tire_tracks = scn.ParticleSystem()
         self.tire_tracks.birthRate = 750
         self.tire_tracks.loops = True
@@ -299,10 +300,10 @@ class Car(scn.Node):
         self.tire_tracks.particleLifeSpan = 4.6
         self.tire_tracks.particleLifeSpanVariation = 5
         self.tire_tracks.particleSize = 0.02
-        self.tire_tracks.particleColor = (0.1, 0.1, 0.1, 1.0)
+        self.tire_tracks.particleColor = (0.1, 0.1, 0.1, 0.5)
         self.tire_tracks.particleColorVariation = (0.1, 0.1, 0.1, 0.1)
         self.tire_tracks.blendMode = scn.ParticleBlendMode.Replace
-        self.tire_tracks.emitterShape = scn.Cylinder(0.02, 0.26)
+        self.tire_tracks.emitterShape = scn.Cylinder(0.21, 0.1)
         self.tire_tracks.birthLocation = (
             scn.ParticleBirthLocation.SCNParticleBirthLocationVolume
         )
@@ -318,6 +319,74 @@ class Car(scn.Node):
         for wheel in self.wheels:
             wheel.addParticleSystem(self.tire_tracks)
 
+
+
+
+        #----------
+        # add exhaust smoke
+        # todo: remove self
+        self.smoke = scn.ParticleSystem()
+        self.smoke.emitterShape = scn.Sphere(0.01)
+        self.smoke.birthLocation = (
+            scn.ParticleBirthLocation.SCNParticleBirthLocationSurface
+        )
+        self.smoke.birthRate = 6000
+        self.smoke.loops = True
+        self.smoke.emissionDuration = 0.08
+        self.smoke.idleDuration = 0.4
+        self.smoke.idleDurationVariation = 0.2
+        self.smoke.particleLifeSpan = 0.3
+        self.smoke.particleLifeSpanVariation = 1.2
+        self.smoke.particleColor = (1.0, 1.0, 1.0, 1.0)
+        self.smoke.particleColorVariation = (0.6, 0.0, 0.6, 0.0)
+        self.smoke.blendMode = scn.ParticleBlendMode.Multiply
+        self.smoke.birthDirection = scn.ParticleBirthDirection.Random
+        self.smoke.particleVelocity = 2.0
+        self.smoke.particleVelocityVariation = 3.5
+        self.smoke.acceleration = (0.0, 15, 0.0)
+        self.sizeAnim = scn.CoreBasicAnimation()
+        self.sizeAnim.fromValue = 0.1
+        self.sizeAnim.toValue = 0.0
+        self.size_con = scn.ParticlePropertyController.controllerWithAnimation(
+            self.sizeAnim
+        )
+        self.smoke.propertyControllers = {scn.SCNParticlePropertySize: self.size_con}
+
+        self.smoker_node = scn.Node()
+        self.smoker_node.position = (0.0, -0.15, 0.0)
+        self.smoker_node.addParticleSystem(self.smoke)
+        exhaust_node = self.childNodeWithName("exhaust", True)
+        exhaust_node.addChildNode(self.smoker_node)
+        
+        #-------
+        # add radar points
+        self.radar_p1L = scn.Vector3(1.2, 1.3, 2.05)
+        self.radar_p2L = scn.Vector3(4.5, 0.8, 20)
+        self.radar_pSL = scn.Vector3(10.0, 0.8, 2.4)
+        self.radar_p1R = scn.Vector3(-1.2, 1.3, 2.05)
+        self.radar_p2R = scn.Vector3(-4.5, 0.8, 20)
+        self.radar_pSR = scn.Vector3(-10.0, 0.8, 2.4)
+        
+        #-----
+        # add camera
+        self.camera_controller_node = scn.Node()
+
+        self.camera_node = scn.Node()
+        self.camera_node.position = (0, 1.6, 2.05)
+        self.camera_node.lookAt((0, 0.9, 10))
+        self.camera = scn.Camera()
+        self.camera.zNear = 0.25
+        self.camera.zFar = 10
+        self.camera.fieldOfView = 35
+        self.camera_node.camera = self.camera
+
+        self.camera_controller_node.addChildNode(self.camera_node)
+        self.addChildNode(self.camera_controller_node)
+        
+        
+        
+        
+        
         self.name = properties.pop("name", "car")
         self.program_table = [aProg(self) for aProg in Car.programs]
         self.current_program = CarProgram.idle
@@ -509,6 +578,7 @@ class Car(scn.Node):
         exhaust = scn.Tube(0.05, 0.07, 0.08)
         exhaust.firstMaterial.metalness.contents = (0.5, 0.5, 0.5)
         exhaust_node = scn.Node.nodeWithGeometry(exhaust)
+        exhaust_node.name = "exhaust"
         exhaust_node.position = (0.5, -0.42, -2.04)
         exhaust_node.rotation = (1, 0, 0, math.pi / 2)
         body_node.addChildNode(exhaust_node)
