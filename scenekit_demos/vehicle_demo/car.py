@@ -239,16 +239,16 @@ class Car(scn.Node):
         # make nodes with geometry for the car body and wheels
         if simple:
             self._add_simple_body()
-            wheels = self._add_simple_wheels()
+            self.wheels = self._add_simple_wheels()
         else:
             self._add_body(properties)
-            wheels = self._add_wheels()
+            self.wheels = self._add_wheels()
 
-        self._add_physics(scene, wheels)
+        self._add_physics(scene, self.wheels)
 
         self._add_audio_player(properties)
 
-        self._add_tire_tracks_particle_system(wheels)
+        self._add_tire_tracks_particle_system(self.wheels)
 
         self._add_exhaust_smoke_particle_system()
 
