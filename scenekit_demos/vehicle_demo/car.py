@@ -234,9 +234,8 @@ class Car(scn.Node):
         # put this car in the scene.
         # This must be done before the physicsBody instantiation in order to get the correct physicsShape
         scene.rootNode.addChildNode(self)
+        self.position = properties.pop("position", (0, 0, 0))
 
-        # -----------------------------------------------------------------
-        # make nodes with geometry for the car body and wheels
         if simple:
             self._add_simple_body()
             self.wheels = self._add_simple_wheels()
@@ -256,7 +255,6 @@ class Car(scn.Node):
 
         self._add_camera()
 
-        self.position = properties.pop("position", (0, 0, 0))
         self.name = properties.pop("name", "car")
         self.program_table = [aProg(self) for aProg in Car.programs]
         self.current_program = CarProgram.idle
