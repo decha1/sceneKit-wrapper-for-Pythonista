@@ -23,6 +23,10 @@ db = scn.DebugOption
 debug_options = db.ShowPhysicsShapes  # | db.RenderAsWireframe
 
 
+def length(a):
+    return math.sqrt(sum(x**2 for x in a))
+
+
 class Demo:
     @classmethod
     def run(cls):
@@ -165,7 +169,7 @@ class Demo:
             car.shutdown()
         self.ui_view.close()
 
-    def update(self, renderer, time):
+    def update(self, view, time):
         # update continues to be called even if scene or scene_view is paused
         if self.is_close_button_clicked:
             # run shutdown only once, if already running, do not run again
@@ -207,7 +211,9 @@ class Demo:
                 ):
                     car.setProgram(CarProgram.turn_back)
 
-            car.move(view, atTime)
+            # the car.move method does not seem to use view or atTime, considere rewriting
+            # car.move(view, atTime)
+            car.move(None, None)  # test to see if above is correct
 
         self.camera_node.lookAt((cx / len(self.cars), camPos.y, cz / len(self.cars)))
         if sum(
