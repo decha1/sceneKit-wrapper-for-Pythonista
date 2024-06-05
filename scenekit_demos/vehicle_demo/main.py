@@ -1,6 +1,6 @@
-'''
+"""
 
-'''
+"""
 
 from objc_util import *
 import sceneKit as scn
@@ -11,6 +11,7 @@ from enum import Enum
 import weakref
 import os
 from car import Car
+from car import CarProgram
 from cars_properties import cars_properties
 import logging
 import time
@@ -146,21 +147,20 @@ class Demo:
 
         return all_lights_node
 
-    
     def close_button_action(self, sender):
         # next line prevents multiple clicks of close button, not sure if necessary?
-        #self.ui_view.remove_subview(self.close_button)
-        
+        # self.ui_view.remove_subview(self.close_button)
+
         # trigger shutdown during next render update
         self.is_close_button_clicked = True
 
     def shutdown(self):
         self.is_shutting_down = True
-        
+
         # don't know if the following pause statements actually do anything
         self.scene.paused = True
         self.scn_view.pause()
-        
+
         for car in self.cars:
             car.shutdown()
         self.ui_view.close()
@@ -172,26 +172,28 @@ class Demo:
             if not self.is_shutting_down:
                 self.shutdown()
             return
-            
+
         cx, cz, node_dist = 0.0, 0.0, 99999999999.0
         camPos = self.camera_node.position
-        for aCar in self.cars:
-            aCar.current_speed = abs(aCar.physics_vehicle.speedInKilometersPerHour)
-            aCar.node = aCar.chassis_node.presentationNode
-            aCar.position = aCar.node.position
-            cx += aCar.position.x
-            cz += aCar.position.z
-            node_dist = min(node_dist, abs(aCar.position.z - camPos.z))
+        for car in self.cars:
+            car.current_speed = abs(car.physics_vehicle.speedInKilometersPerHour)
+            car.node = car.chassis_node.presentationNode
+
+            car_position = car.presentationNode.position
+
+            cx += car_position.x
+            cz += car_position.z
+            node_dist = min(node_dist, abs(car_position.z - camPos.z))
 
             if (
-                aCar.current_program == CarProgram.reverse
-                or aCar.current_program == CarProgram.obstacle
+                car.current_program == CarProgram.reverse
+                or car.current_program == CarProgram.obstacle
             ):
                 pass
             else:
                 obstacles = list(
                     view.nodesInsideFrustumWithPointOfView(
-                        aCar.camera_node.presentationNode
+                        car.camera_node.presentationNode
                     )
                 )
                 try:
@@ -199,14 +201,14 @@ class Demo:
                 except ValueError:
                     pass
                 if len(obstacles) > 0:
-                    aCar.setProgram(CarProgram.obstacle)
+                    car.setProgram(CarProgram.obstacle)
 
-                elif length(aCar.position) > random.uniform(
-                    aCar.too_far, aCar.too_far + 30
+                elif length(car_position) > random.uniform(
+                    car.too_far, car.too_far + 30
                 ):
-                    aCar.setProgram(CarProgram.turn_back)
+                    car.setProgram(CarProgram.turn_back)
 
-            aCar.move(view, atTime)
+            car.move(view, atTime)
 
         self.camera_node.lookAt((cx / len(self.cars), camPos.y, cz / len(self.cars)))
         if sum(
@@ -219,7 +221,6 @@ class Demo:
             self.camera_node.position = (camPos.x, camPos.y, camPos.z + 0.05)
         elif node_dist > 35:
             self.camera_node.position = (camPos.x, camPos.y, camPos.z - 0.03)
-        
 
 
 Demo.run()
