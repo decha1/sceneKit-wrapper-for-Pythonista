@@ -224,7 +224,7 @@ class Steering:
 class Car(scn.Node):
     programs = [Idle, Turn_back, Obstacle, Reverse]
 
-    #def control(self):
+    # def control(self):
     #    self.physics_vehicle.applyEngineForce(1000, 0)
     #    self.physics_vehicle.applyEngineForce(1000, 1)
 
@@ -270,22 +270,22 @@ class Car(scn.Node):
         dret, dir, car = 999999999999.0, -1, False
         hit_list = []
 
-        p1L = self.node.convertPosition(self.radar_p1L)
-        pSL = self.node.convertPosition(self.radar_pSL)
-        p1R = self.node.convertPosition(self.radar_p1R)
-        pSR = self.node.convertPosition(self.radar_pSR)
+        p1L = self.presentationNode.convertPosition(self.radar_p1L)
+        pSL = self.presentationNode.convertPosition(self.radar_pSL)
+        p1R = self.presentationNode.convertPosition(self.radar_p1R)
+        pSR = self.presentationNode.convertPosition(self.radar_pSR)
 
         p1C = ((p1L.x + p1R.x) / 2, (p1L.y + p1R.y) / 2, (p1L.z + p1R.z) / 2)
 
         for i in range(rays):
-            p1i = self.node.convertPosition(
+            p1i = self.presentationNode.convertPosition(
                 (
                     self.radar_p1L.x + (self.radar_p1R.x - self.radar_p1L.x) * i / rays,
                     self.radar_p1L.y,
                     self.radar_p1L.z,
                 )
             )
-            p2i = self.node.convertPosition(
+            p2i = self.presentationNode.convertPosition(
                 (
                     (
                         self.radar_p2L.x
@@ -333,30 +333,30 @@ class Car(scn.Node):
         dret, car = 999999999999.0, False
         hit_list = []
 
-        p1L = self.node.convertPosition(
+        p1L = self.presentationNode.convertPosition(
             (self.radar_p1L.x, self.radar_p1L.y, -self.radar_p1L.z)
         )
-        pSL = self.node.convertPosition(
+        pSL = self.presentationNode.convertPosition(
             (self.radar_pSL.x, self.radar_pSL.y, -self.radar_pSL.x)
         )
-        p1R = self.node.convertPosition(
+        p1R = self.presentationNode.convertPosition(
             (self.radar_p1R.x, self.radar_p1R.y, -self.radar_p1R.z)
         )
-        pSR = self.node.convertPosition(
+        pSR = self.presentationNode.convertPosition(
             (self.radar_pSR.x, self.radar_pSR.y, -self.radar_pSR.z)
         )
 
         p1C = ((p1L.x + p1R.x) / 2, (p1L.y + p1R.y) / 2, (p1L.z + p1R.z) / 2)
 
         for i in range(rays):
-            p1i = self.node.convertPosition(
+            p1i = self.presentationNode.convertPosition(
                 (
                     self.radar_p1L.x + (self.radar_p1R.x - self.radar_p1L.x) * i / rays,
                     self.radar_p1L.y,
                     -self.radar_p1L.z,
                 )
             )
-            p2i = self.node.convertPosition(
+            p2i = self.presentationNode.convertPosition(
                 (
                     (
                         self.radar_p2L.x
@@ -836,7 +836,7 @@ class Car(scn.Node):
         smoker_node.addParticleSystem(smoke)
         exhaust_node = self.childNodeWithName("exhaust", True)
         exhaust_node.addChildNode(smoker_node)
-        
+
         self.smoke = smoke
 
     def _add_radar_nodes(self):
@@ -856,7 +856,7 @@ class Car(scn.Node):
         camera.zFar = 10
         camera.fieldOfView = 35
         camera_node.camera = camera
-        
+
         camera_controller_node = scn.Node()
         camera_controller_node.addChildNode(camera_node)
         self.addChildNode(camera_controller_node)

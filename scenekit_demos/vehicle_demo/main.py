@@ -177,7 +177,6 @@ class Demo:
         camPos = self.camera_node.position
         for car in self.cars:
             car.current_speed = abs(car.physics_vehicle.speedInKilometersPerHour)
-            car.node = car.chassis_node.presentationNode
 
             car_position = car.presentationNode.position
 
@@ -213,8 +212,8 @@ class Demo:
         self.camera_node.lookAt((cx / len(self.cars), camPos.y, cz / len(self.cars)))
         if sum(
             1
-            for aCar in self.cars
-            if view.isNodeInsideFrustum(aCar.node, self.camera_node)
+            for car in self.cars
+            if view.isNodeInsideFrustum(car.presentationNode, self.camera_node)
         ) < len(self.cars):
             self.camera_node.position = (camPos.x, camPos.y, camPos.z + 0.1)
         elif node_dist < 15:
