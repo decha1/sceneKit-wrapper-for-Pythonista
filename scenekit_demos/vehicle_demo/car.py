@@ -263,6 +263,192 @@ class Car(scn.Node):
         self.too_far_distance = properties.pop("too_far", 30)
         self.current_speed = 0
 
+    def move(self, view, atTime):
+        self.program_table[self.current_program].move(view, atTime)
+
+    def scan(self, rays=15):
+        dret, dir, car = 999999999999.0, -1, False
+        hit_list = []
+
+        p1L = self.node.convertPosition(self.radar_p1L)
+        pSL = self.node.convertPosition(self.radar_pSL)
+        p1R = self.node.convertPosition(self.radar_p1R)
+        pSR = self.node.convertPosition(self.radar_pSR)
+
+        p1C = ((p1L.x + p1R.x) / 2, (p1L.y + p1R.y) / 2, (p1L.z + p1R.z) / 2)
+
+        for i in range(rays):
+            p1i = self.node.convertPosition(
+                (
+                    self.radar_p1L.x + (self.radar_p1R.x - self.radar_p1L.x) * i / rays,
+                    self.radar_p1L.y,
+                    self.radar_p1L.z,
+                )
+            )
+            p2i = self.node.convertPosition(
+                (
+                    (
+                        self.radar_p2L.x
+                        + (self.radar_p2R.x - self.radar_p2L.x) * i / rays
+                    ),
+                    self.radar_p2L.y,
+                    self.radar_p2L.z if i % 2 == 0 else 2 * self.radar_p2L.z,
+                )
+            )
+            hit_list.append(
+                self.physics_world.rayTestWithSegmentFromPoint(
+                    p1i,
+                    p2i,
+                    {scn.PhysicsTestSearchModeKey: scn.PhysicsTestSearchModeClosest},
+                )
+            )
+
+        hit_list.append(
+            self.physics_world.rayTestWithSegmentFromPoint(
+                p1L,
+                pSL,
+                {scn.PhysicsTestSearchModeKey: scn.PhysicsTestSearchModeClosest},
+            )
+        )
+
+        hit_list.append(
+            self.physics_world.rayTestWithSegmentFromPoint(
+                p1R,
+                pSR,
+                {scn.PhysicsTestSearchModeKey: scn.PhysicsTestSearchModeClosest},
+            )
+        )
+
+        for i in range(len(hit_list)):
+            if len(hit_list[i]) == 0:
+                continue
+            d = dist(hit_list[i][0].worldCoordinates, p1C)
+            if d < dret:
+                dret = d
+                dir = -1 if i < (rays + 2) / 2 else 1
+                car = (hit_list[i][0].node.categoryBitMask & 1 << 1) != 0
+        return (dret, dir, car)
+
+    def back_scan(self, rays=7):
+        dret, car = 999999999999.0, False
+        hit_list = []
+
+        p1L = self.node.convertPosition(
+            (self.radar_p1L.x, self.radar_p1L.y, -self.radar_p1L.z)
+        )
+        pSL = self.node.convertPosition(
+            (self.radar_pSL.x, self.radar_pSL.y, -self.radar_pSL.x)
+        )
+        p1R = self.node.convertPosition(
+            (self.radar_p1R.x, self.radar_p1R.y, -self.radar_p1R.z)
+        )
+        pSR = self.node.convertPosition(
+            (self.radar_pSR.x, self.radar_pSR.y, -self.radar_pSR.z)
+        )
+
+        p1C = ((p1L.x + p1R.x) / 2, (p1L.y + p1R.y) / 2, (p1L.z + p1R.z) / 2)
+
+        for i in range(rays):
+            p1i = self.node.convertPosition(
+                (
+                    self.radar_p1L.x + (self.radar_p1R.x - self.radar_p1L.x) * i / rays,
+                    self.radar_p1L.y,
+                    -self.radar_p1L.z,
+                )
+            )
+            p2i = self.node.convertPosition(
+                (
+                    (
+                        self.radar_p2L.x
+                        + (self.radar_p2R.x - self.radar_p2L.x) * i / rays
+                    ),
+                    self.radar_p2L.y,
+                    -self.radar_p2L.z if i % 2 == 0 else -2 * self.radar_p2L.z,
+                )
+            )
+            hit_list += self.physics_world.rayTestWithSegmentFromPoint(
+                p1i,
+                p2i,
+                {scn.PhysicsTestSearchModeKey: scn.PhysicsTestSearchModeClosest},
+            )
+
+        for aHit in hit_list:
+            d = dist(aHit.worldCoordinates, p1C)
+            if d < dret:
+                dret = d
+                car = (aHit.node.categoryBitMask & 1 << 1) != 0
+        return (dret, car)
+
+    def control(self, angle=0, desired_speed_kmh=0, reverse=False):
+        multiplier = -1.2 if reverse else 1
+        self.vehicle.setSteeringAngle(angle, 0)
+        self.vehicle.setSteeringAngle(angle, 1)
+
+        self.camera_controller_node.rotation = (0, 1, 0, -angle / 2)
+
+        if self.current_speed < desired_speed_kmh:
+            self.vehicle.applyEngineForce(multiplier * 950, 0)
+            self.vehicle.applyEngineForce(multiplier * 950, 1)
+            self.vehicle.applyBrakingForce(0, 2)
+            self.vehicle.applyBrakingForce(0, 3)
+            self.set_brakelights(turn_on=False)
+            self.smoke.birthRate = 700 + (desired_speed_kmh - self.current_speed) ** 2.5
+        elif self.current_speed > 1.2 * desired_speed_kmh:
+            self.vehicle.applyEngineForce(0, 0)
+            self.vehicle.applyEngineForce(0, 1)
+            self.vehicle.applyBrakingForce(multiplier * 20, 2)
+            self.vehicle.applyBrakingForce(multiplier * 20, 3)
+            self.set_brakelights(turn_on=True)
+            self.smoke.birthRate = 0.0
+        else:
+            self.vehicle.applyEngineForce(0, 0)
+            self.vehicle.applyEngineForce(0, 1)
+            self.vehicle.applyBrakingForce(0, 2)
+            self.vehicle.applyBrakingForce(0, 3)
+            self.set_brakelights(turn_on=False)
+            self.smoke.birthRate = 0.0
+
+    def stop(self, angle=0):
+        factor = 30  # 60
+        self.vehicle.setSteeringAngle(angle, 0)
+        self.vehicle.setSteeringAngle(angle, 1)
+        self.vehicle.applyEngineForce(0, 0)
+        self.vehicle.applyEngineForce(0, 1)
+        self.vehicle.applyBrakingForce(factor, 2)
+        self.vehicle.applyBrakingForce(factor, 3)
+        self.brakeLights(on=True)
+        self.smoke.birthRate = 0.0
+
+        self.camera_controller_node.rotation = (0, 1, 0, -angle / 2)
+
+    def setProgram(self, car_program, *args, **kwargs):
+        if self.current_program != car_program:
+            current_angle = self.program_table[
+                self.current_program
+            ].steering.currentSteeringAngle
+            self.program_stack.append(self.current_program)
+            self.current_program = car_program
+            self.program_table[self.current_program].activate(current_angle)
+            if DEBUG:
+                self.world.setStatus()
+
+    def popProgram(self, *args, **kwargs):
+        current_angle = self.program_table[
+            self.current_program
+        ].steering.currentSteeringAngle
+        self.current_program = self.program_stack.pop()
+        self.program_table[self.current_program].activate(current_angle)
+        if DEBUG:
+            self.world.setStatus()
+
+    def set_brakelights(self, turn_on=False):
+        if not self.is_brake_light_on and turn_on:
+            self.lampGlasBack.firstMaterial.emission.contents = self.lampBack_colors[1]
+            self.is_brake_light_on = True
+        elif self.is_brake_light_on and not turn_on:
+            self.lampGlasBack.firstMaterial.emission.contents = self.lampBack_colors[0]
+            self.is_brake_light_on = False
+
     def shutdown(self):
         self.removeAllAudioPlayers()
         for wheel in self.wheels:
@@ -604,7 +790,7 @@ class Car(scn.Node):
         tire_tracks.particleColor = (0.1, 0.1, 0.1, 0.5)
         tire_tracks.particleColorVariation = (0.1, 0.1, 0.1, 0.1)
         tire_tracks.blendMode = scn.ParticleBlendMode.Replace
-        tire_tracks.emitterShape = scn.Cylinder(0.21, 0.1)
+        tire_tracks.emitterShape = scn.Cylinder(0.15, 0.1)
         tire_tracks.birthLocation = (
             scn.ParticleBirthLocation.SCNParticleBirthLocationVolume
         )
