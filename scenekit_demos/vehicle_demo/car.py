@@ -224,9 +224,9 @@ class Steering:
 class Car(scn.Node):
     programs = [Idle, Turn_back, Obstacle, Reverse]
 
-    def control(self):
-        self.physics_vehicle.applyEngineForce(1000, 0)
-        self.physics_vehicle.applyEngineForce(1000, 1)
+    #def control(self):
+    #    self.physics_vehicle.applyEngineForce(1000, 0)
+    #    self.physics_vehicle.applyEngineForce(1000, 1)
 
     def __init__(self, scene, properties={}, simple=False):
         super().__init__()
@@ -381,42 +381,42 @@ class Car(scn.Node):
 
     def control(self, angle=0, desired_speed_kmh=0, reverse=False):
         multiplier = -1.2 if reverse else 1
-        self.vehicle.setSteeringAngle(angle, 0)
-        self.vehicle.setSteeringAngle(angle, 1)
+        self.physics_vehicle.setSteeringAngle(angle, 0)
+        self.physics_vehicle.setSteeringAngle(angle, 1)
 
         self.camera_controller_node.rotation = (0, 1, 0, -angle / 2)
 
         if self.current_speed < desired_speed_kmh:
-            self.vehicle.applyEngineForce(multiplier * 950, 0)
-            self.vehicle.applyEngineForce(multiplier * 950, 1)
-            self.vehicle.applyBrakingForce(0, 2)
-            self.vehicle.applyBrakingForce(0, 3)
+            self.physics_vehicle.applyEngineForce(multiplier * 950, 0)
+            self.physics_vehicle.applyEngineForce(multiplier * 950, 1)
+            self.physics_vehicle.applyBrakingForce(0, 2)
+            self.physics_vehicle.applyBrakingForce(0, 3)
             self.set_brakelights(turn_on=False)
             self.smoke.birthRate = 700 + (desired_speed_kmh - self.current_speed) ** 2.5
         elif self.current_speed > 1.2 * desired_speed_kmh:
-            self.vehicle.applyEngineForce(0, 0)
-            self.vehicle.applyEngineForce(0, 1)
-            self.vehicle.applyBrakingForce(multiplier * 20, 2)
-            self.vehicle.applyBrakingForce(multiplier * 20, 3)
+            self.physics_vehicle.applyEngineForce(0, 0)
+            self.physics_vehicle.applyEngineForce(0, 1)
+            self.physics_vehicle.applyBrakingForce(multiplier * 20, 2)
+            self.physics_vehicle.applyBrakingForce(multiplier * 20, 3)
             self.set_brakelights(turn_on=True)
             self.smoke.birthRate = 0.0
         else:
-            self.vehicle.applyEngineForce(0, 0)
-            self.vehicle.applyEngineForce(0, 1)
-            self.vehicle.applyBrakingForce(0, 2)
-            self.vehicle.applyBrakingForce(0, 3)
+            self.physics_vehicle.applyEngineForce(0, 0)
+            self.physics_vehicle.applyEngineForce(0, 1)
+            self.physics_vehicle.applyBrakingForce(0, 2)
+            self.physics_vehicle.applyBrakingForce(0, 3)
             self.set_brakelights(turn_on=False)
             self.smoke.birthRate = 0.0
 
     def stop(self, angle=0):
         factor = 30  # 60
-        self.vehicle.setSteeringAngle(angle, 0)
-        self.vehicle.setSteeringAngle(angle, 1)
-        self.vehicle.applyEngineForce(0, 0)
-        self.vehicle.applyEngineForce(0, 1)
-        self.vehicle.applyBrakingForce(factor, 2)
-        self.vehicle.applyBrakingForce(factor, 3)
-        self.brakeLights(on=True)
+        self.physics_vehicle.setSteeringAngle(angle, 0)
+        self.physics_vehicle.setSteeringAngle(angle, 1)
+        self.physics_vehicle.applyEngineForce(0, 0)
+        self.physics_vehicle.applyEngineForce(0, 1)
+        self.physics_vehicle.applyBrakingForce(factor, 2)
+        self.physics_vehicle.applyBrakingForce(factor, 3)
+        self.set_brakelights(turn_on=True)
         self.smoke.birthRate = 0.0
 
         self.camera_controller_node.rotation = (0, 1, 0, -angle / 2)
@@ -729,7 +729,7 @@ class Car(scn.Node):
         br_wheel.addChildNode(base_wheel_node.clone())
         br_wheel.position = (-0.94, 0.4, -2 + 0.7)
 
-        wheels = [br_wheel, bl_wheel, fr_wheel, fl_wheel]
+        wheels = [fr_wheel, fl_wheel, br_wheel, bl_wheel]
         for wheel in wheels:
             self.addChildNode(wheel)
 
@@ -836,6 +836,8 @@ class Car(scn.Node):
         smoker_node.addParticleSystem(smoke)
         exhaust_node = self.childNodeWithName("exhaust", True)
         exhaust_node.addChildNode(smoker_node)
+        
+        self.smoke = smoke
 
     def _add_radar_nodes(self):
         self.radar_p1L = scn.Vector3(1.2, 1.3, 2.05)
@@ -846,8 +848,6 @@ class Car(scn.Node):
         self.radar_pSR = scn.Vector3(-10.0, 0.8, 2.4)
 
     def _add_camera(self):
-        camera_controller_node = scn.Node()
-
         camera_node = scn.Node()
         camera_node.position = (0, 1.6, 2.05)
         camera_node.lookAt((0, 0.9, 10))
@@ -856,6 +856,8 @@ class Car(scn.Node):
         camera.zFar = 10
         camera.fieldOfView = 35
         camera_node.camera = camera
-
+        
+        camera_controller_node = scn.Node()
         camera_controller_node.addChildNode(camera_node)
         self.addChildNode(camera_controller_node)
+        self.camera_controller_node = camera_controller_node

@@ -41,7 +41,8 @@ class Demo:
 
         self.scene.rootNode.addChildNode(self.make_floor())
 
-        self.scene.rootNode.addChildNode(self.make_camera())
+        self.camera_node = self.make_camera()
+        self.scene.rootNode.addChildNode(self.camera_node)
 
         self.scene.rootNode.addChildNode(self.make_lights())
 
@@ -171,9 +172,54 @@ class Demo:
             if not self.is_shutting_down:
                 self.shutdown()
             return
+            
+        cx, cz, node_dist = 0.0, 0.0, 99999999999.0
+        camPos = self.camera_node.position
+        for aCar in self.cars:
+            aCar.current_speed = abs(aCar.physics_vehicle.speedInKilometersPerHour)
+            aCar.node = aCar.chassis_node.presentationNode
+            aCar.position = aCar.node.position
+            cx += aCar.position.x
+            cz += aCar.position.z
+            node_dist = min(node_dist, abs(aCar.position.z - camPos.z))
 
-        for car in self.cars:
-            car.control()
+            if (
+                aCar.current_program == CarProgram.reverse
+                or aCar.current_program == CarProgram.obstacle
+            ):
+                pass
+            else:
+                obstacles = list(
+                    view.nodesInsideFrustumWithPointOfView(
+                        aCar.camera_node.presentationNode
+                    )
+                )
+                try:
+                    obstacles.remove(self.floor_node)
+                except ValueError:
+                    pass
+                if len(obstacles) > 0:
+                    aCar.setProgram(CarProgram.obstacle)
+
+                elif length(aCar.position) > random.uniform(
+                    aCar.too_far, aCar.too_far + 30
+                ):
+                    aCar.setProgram(CarProgram.turn_back)
+
+            aCar.move(view, atTime)
+
+        self.camera_node.lookAt((cx / len(self.cars), camPos.y, cz / len(self.cars)))
+        if sum(
+            1
+            for aCar in self.cars
+            if view.isNodeInsideFrustum(aCar.node, self.camera_node)
+        ) < len(self.cars):
+            self.camera_node.position = (camPos.x, camPos.y, camPos.z + 0.1)
+        elif node_dist < 15:
+            self.camera_node.position = (camPos.x, camPos.y, camPos.z + 0.05)
+        elif node_dist > 35:
+            self.camera_node.position = (camPos.x, camPos.y, camPos.z - 0.03)
+        
 
 
 Demo.run()
