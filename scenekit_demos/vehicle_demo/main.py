@@ -195,9 +195,7 @@ class Demo:
                 pass
             else:
                 obstacles = list(
-                    view.nodesInsideFrustumWithPointOfView(
-                        car.camera_node.presentationNode
-                    )
+                    view.nodesInsideFrustumWithPointOfView(car.camera.presentationNode)
                 )
                 try:
                     obstacles.remove(self.floor_node)

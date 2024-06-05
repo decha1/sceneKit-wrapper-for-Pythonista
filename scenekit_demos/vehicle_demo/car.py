@@ -384,7 +384,7 @@ class Car(scn.Node):
         self.physics_vehicle.setSteeringAngle(angle, 0)
         self.physics_vehicle.setSteeringAngle(angle, 1)
 
-        self.camera_controller_node.rotation = (0, 1, 0, -angle / 2)
+        self.camera.rotation = (0, 1, 0, -angle / 2)
 
         if self.current_speed < desired_speed_kmh:
             self.physics_vehicle.applyEngineForce(multiplier * 950, 0)
@@ -419,7 +419,7 @@ class Car(scn.Node):
         self.set_brakelights(turn_on=True)
         self.smoke.birthRate = 0.0
 
-        self.camera_controller_node.rotation = (0, 1, 0, -angle / 2)
+        self.camera.rotation = (0, 1, 0, -angle / 2)
 
     def setProgram(self, car_program, *args, **kwargs):
         if self.current_program != car_program:
@@ -857,7 +857,10 @@ class Car(scn.Node):
         camera.fieldOfView = 35
         camera_node.camera = camera
 
+        self.camera = camera_node
+        """
         camera_controller_node = scn.Node()
         camera_controller_node.addChildNode(camera_node)
         self.addChildNode(camera_controller_node)
         self.camera_controller_node = camera_controller_node
+        """
