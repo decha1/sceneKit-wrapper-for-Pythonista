@@ -1,10 +1,8 @@
-'''
+"""
 callback handler for particleSystem seems to cause the program to crash.
 need to test scenekit code
 callback handler not assigned in this code
-'''
-
-
+"""
 
 import sceneKit as scn
 import math
@@ -233,177 +231,46 @@ class Car(scn.Node):
     def __init__(self, scene, properties={}, simple=False):
         super().__init__()
 
-        # -----------------------------------------------------------------
-        # make nodes with geometry for the car body and wheels
-        if simple:
-            position = properties.pop("position", (0, 0, 0))
-            new_position = (position[0], position[1] + 5, position[2])
-            self.position = new_position
-            body = self.simple_make_body()
-            wheels = self.simple_make_wheels()
-        else:
-            self.position = properties.pop("position", (0, 0, 0))
-            self.body = self.make_body(
-                body_color=properties.pop("body_color", (0.6, 0.0, 0.0))
-            )
-            self.wheels = self.make_wheels()
-
-        self.addChildNode(self.body)
-        for wheel in self.wheels:
-            self.addChildNode(wheel)
-
         # put this car in the scene.
-        # This is done before the physicsBody instantiation in order to get the correct physicsShape
+        # This must be done before the physicsBody instantiation in order to get the correct physicsShape
         scene.rootNode.addChildNode(self)
 
         # -----------------------------------------------------------------
-        # make physics objects for the car body and wheels and the car as a whole
-        physicsBody = scn.PhysicsBody.dynamicBody()
-        physicsBody.allowsResting = False
-        physicsBody.mass = 1200
-        physicsBody.restitution = 0.1
-        physicsBody.damping = 0.3
+        # make nodes with geometry for the car body and wheels
+        if simple:
+            self._add_simple_body()
+            wheels = self._add_simple_wheels()
+        else:
+            self._add_body(properties)
+            wheels = self._add_wheels()
 
-        self.physicsBody = physicsBody
-        # self.physicsBody.physicsShape = scn.PhysicsShape(node=self)
+        self._add_physics(scene, wheels)
 
-        physics_wheels = [scn.PhysicsVehicleWheel(wheel) for wheel in self.wheels]
-        physics_wheels[0].suspensionRestLength = 1.3
-        physics_wheels[1].suspensionRestLength = 1.3
-        physics_wheels[2].suspensionRestLength = 1.4
-        physics_wheels[3].suspensionRestLength = 1.4
-        for wheel in physics_wheels:
-            wheel.maximumSuspensionTravel = 150
-        self.physics_vehicle = scn.PhysicsVehicle(
-            chassisBody=physicsBody, wheels=physics_wheels
-        )
-        scene.physicsWorld.addBehavior(self.physics_vehicle)
+        self._add_audio_player(properties)
 
-        # -----------------------------------------------------------------
-        # add sound to the car
-        sound_file = properties.pop("sound", "casino:DiceThrow2")
-        sound_volume = properties.pop("volume", 1.0)
-        sound = scn.AudioSource(sound_file)
-        sound.load()
-        sound.loops = True
-        sound.volume = sound_volume
-        sound_player = scn.AudioPlayer.audioPlayerWithSource(sound)
-        self.addAudioPlayer(sound_player)
+        self._add_tire_tracks_particle_system(wheels)
 
-        # -----------------------------------------------------------------
-        # add tire tracks to the car
-        # todo: remove self
-        self.tire_tracks = scn.ParticleSystem()
-        self.tire_tracks.birthRate = 750
-        self.tire_tracks.loops = True
-        self.tire_tracks.emissionDuration = 0.1
-        self.tire_tracks.particleLifeSpan = 4.6
-        self.tire_tracks.particleLifeSpanVariation = 5
-        self.tire_tracks.particleSize = 0.02
-        self.tire_tracks.particleColor = (0.1, 0.1, 0.1, 0.5)
-        self.tire_tracks.particleColorVariation = (0.1, 0.1, 0.1, 0.1)
-        self.tire_tracks.blendMode = scn.ParticleBlendMode.Replace
-        self.tire_tracks.emitterShape = scn.Cylinder(0.21, 0.1)
-        self.tire_tracks.birthLocation = (
-            scn.ParticleBirthLocation.SCNParticleBirthLocationVolume
-        )
-        
-        # program crashes if following line is run
-        '''
-        self.tire_tracks.handle(
-            scn.ParticleEvent.Birth,
-            [scn.ParticlePropertyPosition],
-            self.trackParticleEventBlock,
-        )
-        '''
-        for wheel in self.wheels:
-            wheel.addParticleSystem(self.tire_tracks)
+        self._add_exhaust_smoke_particle_system()
 
+        self._add_radar_nodes()
 
+        self._add_camera()
 
-
-        #----------
-        # add exhaust smoke
-        # todo: remove self
-        self.smoke = scn.ParticleSystem()
-        self.smoke.emitterShape = scn.Sphere(0.01)
-        self.smoke.birthLocation = (
-            scn.ParticleBirthLocation.SCNParticleBirthLocationSurface
-        )
-        self.smoke.birthRate = 6000
-        self.smoke.loops = True
-        self.smoke.emissionDuration = 0.08
-        self.smoke.idleDuration = 0.4
-        self.smoke.idleDurationVariation = 0.2
-        self.smoke.particleLifeSpan = 0.3
-        self.smoke.particleLifeSpanVariation = 1.2
-        self.smoke.particleColor = (1.0, 1.0, 1.0, 1.0)
-        self.smoke.particleColorVariation = (0.6, 0.0, 0.6, 0.0)
-        self.smoke.blendMode = scn.ParticleBlendMode.Multiply
-        self.smoke.birthDirection = scn.ParticleBirthDirection.Random
-        self.smoke.particleVelocity = 2.0
-        self.smoke.particleVelocityVariation = 3.5
-        self.smoke.acceleration = (0.0, 15, 0.0)
-        self.sizeAnim = scn.CoreBasicAnimation()
-        self.sizeAnim.fromValue = 0.1
-        self.sizeAnim.toValue = 0.0
-        self.size_con = scn.ParticlePropertyController.controllerWithAnimation(
-            self.sizeAnim
-        )
-        self.smoke.propertyControllers = {scn.SCNParticlePropertySize: self.size_con}
-
-        self.smoker_node = scn.Node()
-        self.smoker_node.position = (0.0, -0.15, 0.0)
-        self.smoker_node.addParticleSystem(self.smoke)
-        exhaust_node = self.childNodeWithName("exhaust", True)
-        exhaust_node.addChildNode(self.smoker_node)
-        
-        #-------
-        # add radar points
-        self.radar_p1L = scn.Vector3(1.2, 1.3, 2.05)
-        self.radar_p2L = scn.Vector3(4.5, 0.8, 20)
-        self.radar_pSL = scn.Vector3(10.0, 0.8, 2.4)
-        self.radar_p1R = scn.Vector3(-1.2, 1.3, 2.05)
-        self.radar_p2R = scn.Vector3(-4.5, 0.8, 20)
-        self.radar_pSR = scn.Vector3(-10.0, 0.8, 2.4)
-        
-        #-----
-        # add camera
-        self.camera_controller_node = scn.Node()
-
-        self.camera_node = scn.Node()
-        self.camera_node.position = (0, 1.6, 2.05)
-        self.camera_node.lookAt((0, 0.9, 10))
-        self.camera = scn.Camera()
-        self.camera.zNear = 0.25
-        self.camera.zFar = 10
-        self.camera.fieldOfView = 35
-        self.camera_node.camera = self.camera
-
-        self.camera_controller_node.addChildNode(self.camera_node)
-        self.addChildNode(self.camera_controller_node)
-        
-        
-        
-        
-        
+        self.position = properties.pop("position", (0, 0, 0))
         self.name = properties.pop("name", "car")
         self.program_table = [aProg(self) for aProg in Car.programs]
         self.current_program = CarProgram.idle
         self.program_stack = [self.current_program]
-        self.brake_light = False
-        self.too_far = properties.pop("too_far", 30)
+        self.is_brake_light_on = False
+        self.too_far_distance = properties.pop("too_far", 30)
         self.current_speed = 0
-
-    def trackParticleEventBlock(self, propValues, prop, particleIndex):
-        propValues[1] = 0.0
 
     def shutdown(self):
         self.removeAllAudioPlayers()
         for wheel in self.wheels:
             wheel.removeAllParticleSystems()
-            
-    def simple_make_body(self):
+
+    def _add_simple_body(self):
         body = self.make_box(1)
         body.position = (0, 0.75, 0)
         a = self.make_box(2)
@@ -411,7 +278,7 @@ class Car(scn.Node):
         # body.addChildNode(a)
         return body
 
-    def simple_make_wheels(self):
+    def _add_simple_wheels(self):
         # wheel = self.make_box(1)
         base_wheel = self.make_tube(0.3, 0.5, 0.2)
 
@@ -462,8 +329,8 @@ class Car(scn.Node):
 
         return scn.Node.nodeWithGeometry(geometry)
 
-    def make_body(self, body_color):
-
+    def _add_body(self, properties):
+        body_color = properties.pop("body_color", (0.6, 0.0, 0.0))
         body_material = scn.Material()
         body_material.diffuse.contents = body_color
         body_material.specular.contents = (0.88, 0.88, 0.88)
@@ -620,8 +487,7 @@ class Car(scn.Node):
 
         return body_node
 
-    def make_wheels(self):
-        # return []
+    def _add_wheels(self):
         tire = scn.Tube(0.12, 0.35, 0.25)
         tire.firstMaterial.diffuse.contents = "black"
         tire_node = scn.Node.nodeWithGeometry(tire)
@@ -677,4 +543,133 @@ class Car(scn.Node):
         br_wheel.addChildNode(base_wheel_node.clone())
         br_wheel.position = (-0.94, 0.4, -2 + 0.7)
 
-        return [br_wheel, bl_wheel, fr_wheel, fl_wheel]  # wheel_nodes
+        wheels = [br_wheel, bl_wheel, fr_wheel, fl_wheel]
+        for wheel in wheels:
+            self.addChildNode(wheel)
+
+        return wheels
+
+    def _add_physics(self, scene, wheels):
+        # this car object must be a child of the scene root node before creating the
+        # physicsBody object because  the physicsShape used by the physicsBody will
+        # be incorrect otherwise. the first line of the __init__ method takes care of this
+        #
+        physicsBody = scn.PhysicsBody.dynamicBody()
+        physicsBody.allowsResting = False
+        physicsBody.mass = 1200
+        physicsBody.restitution = 0.1
+        physicsBody.damping = 0.3
+
+        self.physicsBody = physicsBody
+        # self.physicsBody.physicsShape = scn.PhysicsShape(node=self)
+
+        physics_wheels = [scn.PhysicsVehicleWheel(wheel) for wheel in wheels]
+        physics_wheels[0].suspensionRestLength = 1.3
+        physics_wheels[1].suspensionRestLength = 1.3
+        physics_wheels[2].suspensionRestLength = 1.4
+        physics_wheels[3].suspensionRestLength = 1.4
+        for wheel in physics_wheels:
+            wheel.maximumSuspensionTravel = 150
+        physics_vehicle = scn.PhysicsVehicle(
+            chassisBody=physicsBody, wheels=physics_wheels
+        )
+        scene.physicsWorld.addBehavior(physics_vehicle)
+
+        self.physics_vehicle = physics_vehicle
+
+    def _add_audio_player(self, properties):
+        # -----------------------------------------------------------------
+        # add sound to the car
+        sound_file = properties.pop("sound", "casino:DiceThrow2")
+        sound_volume = properties.pop("volume", 1.0)
+        sound = scn.AudioSource(sound_file)
+        sound.load()
+        sound.loops = True
+        sound.volume = sound_volume
+        sound_player = scn.AudioPlayer.audioPlayerWithSource(sound)
+        self.addAudioPlayer(sound_player)
+
+    def _add_tire_tracks_particle_system(self, wheels):
+        def trackParticleEventBlock(self, propValues, prop, particleIndex):
+            propValues[1] = 0.0
+
+        # add tire tracks to the car
+        tire_tracks = scn.ParticleSystem()
+        tire_tracks.birthRate = 750
+        tire_tracks.loops = True
+        tire_tracks.emissionDuration = 0.1
+        tire_tracks.particleLifeSpan = 4.6
+        tire_tracks.particleLifeSpanVariation = 5
+        tire_tracks.particleSize = 0.02
+        tire_tracks.particleColor = (0.1, 0.1, 0.1, 0.5)
+        tire_tracks.particleColorVariation = (0.1, 0.1, 0.1, 0.1)
+        tire_tracks.blendMode = scn.ParticleBlendMode.Replace
+        tire_tracks.emitterShape = scn.Cylinder(0.21, 0.1)
+        tire_tracks.birthLocation = (
+            scn.ParticleBirthLocation.SCNParticleBirthLocationVolume
+        )
+
+        # program crashes if following line is run
+        """
+        self.tire_tracks.handle(
+            scn.ParticleEvent.Birth,
+            [scn.ParticlePropertyPosition],
+            self.trackParticleEventBlock,
+        )
+        """
+        for wheel in wheels:
+            wheel.addParticleSystem(tire_tracks)
+
+    def _add_exhaust_smoke_particle_system(self):
+        # add exhaust smoke
+        smoke = scn.ParticleSystem()
+        smoke.emitterShape = scn.Sphere(0.01)
+        smoke.birthLocation = scn.ParticleBirthLocation.SCNParticleBirthLocationSurface
+        smoke.birthRate = 6000
+        smoke.loops = True
+        smoke.emissionDuration = 0.08
+        smoke.idleDuration = 0.4
+        smoke.idleDurationVariation = 0.2
+        smoke.particleLifeSpan = 0.3
+        smoke.particleLifeSpanVariation = 1.2
+        smoke.particleColor = (1.0, 1.0, 1.0, 1.0)
+        smoke.particleColorVariation = (0.6, 0.0, 0.6, 0.0)
+        smoke.blendMode = scn.ParticleBlendMode.Multiply
+        smoke.birthDirection = scn.ParticleBirthDirection.Random
+        smoke.particleVelocity = 2.0
+        smoke.particleVelocityVariation = 3.5
+        smoke.acceleration = (0.0, 15, 0.0)
+        sizeAnim = scn.CoreBasicAnimation()
+        sizeAnim.fromValue = 0.1
+        sizeAnim.toValue = 0.0
+        size_con = scn.ParticlePropertyController.controllerWithAnimation(sizeAnim)
+        smoke.propertyControllers = {scn.SCNParticlePropertySize: size_con}
+
+        smoker_node = scn.Node()
+        smoker_node.position = (0.0, -0.15, 0.0)
+        smoker_node.addParticleSystem(smoke)
+        exhaust_node = self.childNodeWithName("exhaust", True)
+        exhaust_node.addChildNode(smoker_node)
+
+    def _add_radar_nodes(self):
+        self.radar_p1L = scn.Vector3(1.2, 1.3, 2.05)
+        self.radar_p2L = scn.Vector3(4.5, 0.8, 20)
+        self.radar_pSL = scn.Vector3(10.0, 0.8, 2.4)
+        self.radar_p1R = scn.Vector3(-1.2, 1.3, 2.05)
+        self.radar_p2R = scn.Vector3(-4.5, 0.8, 20)
+        self.radar_pSR = scn.Vector3(-10.0, 0.8, 2.4)
+
+    def _add_camera(self):
+        camera_controller_node = scn.Node()
+
+        camera_node = scn.Node()
+        camera_node.position = (0, 1.6, 2.05)
+        camera_node.lookAt((0, 0.9, 10))
+        camera = scn.Camera()
+        camera.zNear = 0.25
+        camera.zFar = 10
+        camera.fieldOfView = 35
+        camera_node.camera = camera
+
+        camera_controller_node.addChildNode(camera_node)
+        self.addChildNode(camera_controller_node)
