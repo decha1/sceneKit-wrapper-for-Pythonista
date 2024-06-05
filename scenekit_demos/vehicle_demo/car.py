@@ -271,16 +271,16 @@ class Car(scn.Node):
             wheel.removeAllParticleSystems()
 
     def _add_simple_body(self):
-        body = self.make_box(1)
+        body = self._make_box(1)
         body.position = (0, 0.75, 0)
-        a = self.make_box(2)
+        a = self._make_box(2)
         a.position = (0, 0, 0)
         # body.addChildNode(a)
-        return body
+        self.addChildNode(body)
 
     def _add_simple_wheels(self):
-        # wheel = self.make_box(1)
-        base_wheel = self.make_tube(0.3, 0.5, 0.2)
+        # wheel = self._make_box(1)
+        base_wheel = self._make_tube(0.3, 0.5, 0.2)
 
         # rotate whee for right sided wheels
         base_wheel.rotation = (0, 0, 1, -math.pi / 2)
@@ -304,9 +304,11 @@ class Car(scn.Node):
         bl_wheel.position = (1, 0, -1)
 
         wheels = [fr_wheel, br_wheel, fl_wheel, bl_wheel]
+        for wheel in wheels:
+            self.addChildNode(wheel)
         return wheels
 
-    def make_tube(self, inner, outer, thickness):
+    def _make_tube(self, inner, outer, thickness):
         geometry = scn.Tube(inner, outer, thickness)
         # lg = scn.Material()
         # lg.diffuse.contents = "lightgrey"
@@ -314,7 +316,7 @@ class Car(scn.Node):
 
         return scn.Node.nodeWithGeometry(geometry)
 
-    def make_box(self, size):
+    def _make_box(self, size):
         geometry = scn.Box(size, size, size)
         r = scn.Material()
         r.diffuse.contents = "red"
@@ -485,7 +487,7 @@ class Car(scn.Node):
         lampGlasBack_nodeL.position = (0, -1.95, 0)
         lamp_nodeL.addChildNode(lampGlasBack_nodeL)
 
-        return body_node
+        self.addChildNode(body_node)
 
     def _add_wheels(self):
         tire = scn.Tube(0.12, 0.35, 0.25)
