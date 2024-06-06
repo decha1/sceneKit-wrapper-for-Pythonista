@@ -54,11 +54,15 @@ class Demo:
 
         self.scene.rootNode.addChildNode(self.make_lights())
 
+        '''
         self.cars = [
             Car(scene=self.scene, properties=a_car_properties, simple=IS_SIMPLE)
             for a_car_properties in cars_properties
         ]
-
+        '''
+        
+        self.cars = [Car(self.scene)]
+        
         self.close_button = self.make_close_button()
         self.close_button.action = self.close_button_action
         self.ui_view.add_subview(self.close_button)
@@ -173,6 +177,7 @@ class Demo:
         self.ui_view.close()
 
     def update(self, view, time):
+        print('update')
         # update continues to be called even if scene or scene_view is paused
         if self.is_close_button_clicked:
             # run shutdown only once, if already running, do not run again
@@ -210,13 +215,16 @@ class Demo:
                 pass
             else:
                 obstacles = list(
-                    view.nodesInsideFrustumWithPointOfView(car.camera.presentationNode)
+                    view.nodesInsideFrustumWithPointOfView(
+                        car.camera_node.presentationNode
+                    )
                 )
                 try:
                     obstacles.remove(self.floor_node)
                 except ValueError:
                     pass
                 if len(obstacles) > 0:
+                    print('obstacles')
                     car.setProgram(CarProgram.obstacle)
 
                 elif length(car_position) > random.uniform(
@@ -226,7 +234,7 @@ class Demo:
 
             # the car.move method does not seem to use view or atTime, considere rewriting
             #car.move(view, atTime)
-            car.move(None, None)  # test to see if above is correct
+            #car.move(None, None)  # test to see if above is correct
 
         self.camera_node.lookAt((cx / len(self.cars), camPos.y, cz / len(self.cars)))
         if sum(

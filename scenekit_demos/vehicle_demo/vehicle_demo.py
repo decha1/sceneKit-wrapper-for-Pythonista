@@ -13,7 +13,7 @@ import weakref
 import os
 
 
-DEBUG = False
+DEBUG = True
 MAXCARS = 3  # max 5, set it lower for weaker devices
 ENGINESOUND = True  # set it to False for weaker devices or if too many cars
 MAXACTIVEREVERSE = 2
@@ -83,6 +83,9 @@ class Demo:
         if DEBUG:
             self.scene_view = scn.View((0, 25, w, h - 25), superView=self.main_view)
             self.scene_view.showsStatistics = True
+            db = scn.DebugOption
+            debug_options = db.ShowPhysicsShapes #  | db.RenderAsWireframe
+            self.scene_view.debugOptions = debug_options
         else:
             self.scene_view = scn.View((0, 0, w, h), superView=self.main_view)
         self.scene_view.preferredFramesPerSecond = 30
@@ -90,7 +93,7 @@ class Demo:
         self.scene_view.autoresizingMask = (
             scn.ViewAutoresizing.FlexibleHeight | scn.ViewAutoresizing.FlexibleWidth
         )
-        self.scene_view.allowsCameraControl = False
+        self.scene_view.allowsCameraControl = True
 
         self.scene_view.scene = scn.Scene()
         self.root_node = self.scene_view.scene.rootNode
@@ -158,15 +161,16 @@ class Demo:
                 name="yellow",
                 too_far=25,
                 body_color=(1.0, 0.78, 0.0),
-                position=(-5, 0, -2),
+                position=(-5, 1, -2),
                 sound="game:Pulley",
                 volume=0.1,
             ),
+        
             dict(
                 name="blue",
                 too_far=30,
                 body_color=(0.0, 0.61, 1.0),
-                position=(-12, 0, -6),
+                position=(-12, 1, -6),
                 sound="game:Woosh_1",
                 volume=0.5,
             ),
@@ -187,9 +191,9 @@ class Demo:
                 volume=0.5,
             ),
         ]
-        self.cars = [
-            Car(world=self, props=cars[i]) for i in range(min(MAXCARS, len(cars)))
-        ]
+        
+        self.cars = [Car(world=self, props=cars[i]) for i in range(min(MAXCARS, len(cars)))]
+        
 
         self.free_flags = []
         for i in range(2 * len(self.cars)):
@@ -273,14 +277,15 @@ class Demo:
         for aCar in self.cars:
             aCar.smoker_node.removeAllParticleSystems()
             aCar.tire_node.removeAllParticleSystems()
+            aCar.chassis_node.removeAllAudioPlayers()
         for aNode in self.used_flags.values():
             aNode.removeAllParticleSystems()
             aNode.removeAllAudioPlayers()
         self.physics_world.removeAllBehaviors()
         self.scene_view.scene.paused = True
-        self.scene_view.removeFromSuperview()
+        #self.scene_view.removeFromSuperview()
         self.main_view.close()
-        ui.delay(self.exit, 1.5)
+        #ui.delay(self.exit, 1.5)
 
     def exit(self):
         raise SystemExit()
@@ -290,7 +295,9 @@ class Demo:
             if not self.shut_down:
                 self.shutDown()
             return
-
+        print("update")
+        self.cars[0].control(0,5)
+        return
         cx, cz, node_dist = 0.0, 0.0, 99999999999.0
         camPos = self.camera_node.position
         for aCar in self.cars:
@@ -323,7 +330,7 @@ class Demo:
                     aCar.too_far, aCar.too_far + 30
                 ):
                     aCar.setProgram(CarProgram.turn_back)
-
+            print("move")
             aCar.move(view, atTime)
 
         self.camera_node.lookAt((cx / len(self.cars), camPos.y, cz / len(self.cars)))
@@ -578,6 +585,7 @@ class Car:
         self.position = self.chassis_node.position
 
     def move(self, view, atTime):
+        print(self.program_table[self.current_program])
         self.program_table[self.current_program].move(view, atTime)
 
     def scan(self, rays=15):
@@ -694,11 +702,12 @@ class Car:
         return (dret, car)
 
     def control(self, angle=0, desired_speed_kmh=0, reverse=False):
+        
         multiplier = -1.2 if reverse else 1
         self.vehicle.setSteeringAngle(angle, 0)
         self.vehicle.setSteeringAngle(angle, 1)
 
-        self.camera_controller_node.rotation = (0, 1, 0, -angle / 2)
+        #self.camera_controller_node.rotation = (0, 1, 0, -angle / 2)
 
         if self.current_speed < desired_speed_kmh:
             self.vehicle.applyEngineForce(multiplier * 950, 0)
@@ -706,7 +715,9 @@ class Car:
             self.vehicle.applyBrakingForce(0, 2)
             self.vehicle.applyBrakingForce(0, 3)
             self.brakeLights(on=False)
-            self.smoke.birthRate = 700 + (desired_speed_kmh - self.current_speed) ** 2.5
+            #self.smoke.birthRate = 700 + (desired_speed_kmh - self.current_speed) ** 2.5
+            print("inside if")
+            print(self.vehicle)
         elif self.current_speed > 1.2 * desired_speed_kmh:
             self.vehicle.applyEngineForce(0, 0)
             self.vehicle.applyEngineForce(0, 1)
@@ -721,6 +732,7 @@ class Car:
             self.vehicle.applyBrakingForce(0, 3)
             self.brakeLights(on=False)
             self.smoke.birthRate = 0.0
+        print("control", angle, desired_speed_kmh, self.current_speed)
 
     def stop(self, angle=0):
         factor = 30  # 60
@@ -763,7 +775,73 @@ class Car:
             self.lampGlasBack.firstMaterial.emission.contents = self.lampBack_colors[0]
             self.brake_light = False
 
+
     def buildCar(self, body_color=None, sound_file=None, sound_volume=1.0):
+        self.chassis_node = scn.Node()
+        self.world.root_node.addChildNode(self.chassis_node)
+        
+        self.body_material = scn.Material()
+        self.body_material.diffuse.contents = body_color
+        self.body_material.specular.contents = (0.88, 0.88, 0.88)
+
+        self.body = scn.Box(2, 1, 4, 0.2)
+        self.body.firstMaterial = self.body_material
+
+        self.body_node = scn.Node.nodeWithGeometry(self.body)
+        self.body_node.position = (0, 0.75, 0)
+        self.chassis_node.addChildNode(self.body_node)
+        
+        self.physicsBody = scn.PhysicsBody.dynamicBody()
+        self.physicsBody.allowsResting = False
+        self.physicsBody.mass = 1200
+        self.physicsBody.restitution = 0.1
+        self.physicsBody.damping = 0.3
+        self.chassis_node.physicsBody = self.physicsBody
+        
+        self.wheel_nodes = [scn.Node()]
+        self.tire = scn.Tube(0.12, 0.35, 0.25)
+        self.tire.firstMaterial.diffuse.contents = "black"
+        self.wheel_nodes[0].position = (0.94, 0.4, 2 - 0.6)
+        self.tire_node = scn.Node.nodeWithGeometry(self.tire)
+        self.tire_node.rotation = (0, 0, 1, math.pi / 2)
+        self.wheel_nodes[0].addChildNode(self.tire_node)
+
+        self.wheel_nodes.append(self.wheel_nodes[0].clone())
+        self.wheel_nodes[1].position = (-0.94, 0.4, 2 - 0.6)
+        
+
+        self.wheel_nodes.append(self.wheel_nodes[0].clone())
+        self.wheel_nodes[2].position = (0.94, 0.4, -2 + 0.7)
+        
+
+        self.wheel_nodes.append(self.wheel_nodes[0].clone())
+        self.wheel_nodes[3].position = (-0.94, 0.4, -2 + 0.7)
+        
+
+        for aNode in self.wheel_nodes:
+            self.chassis_node.addChildNode(aNode)
+
+        self.wheels = [
+            scn.PhysicsVehicleWheel(node=aNode) for aNode in self.wheel_nodes
+        ]
+        for i in [0, 1]:
+            self.wheels[i].suspensionRestLength = 1.3
+        for i in [2, 3]:
+            self.wheels[i].suspensionRestLength = 1.4
+        for aWheel in self.wheels:
+            aWheel.maximumSuspensionTravel = 150
+
+        self.chassis_node.physicsBody.contactTestBitMask = (
+            scn.PhysicsCollisionCategory.Default.value
+        )
+        self.chassis_node.physicsBody.continuousCollisionDetectionThreshold = 2.0
+        self.vehicle = scn.PhysicsVehicle(
+            chassisBody=self.chassis_node.physicsBody, wheels=self.wheels
+        )
+        self.physics_world.addBehavior(self.vehicle)
+        self.world.root_node.addChildNode(self.chassis_node)
+
+    def xbuildCar(self, body_color=None, sound_file=None, sound_volume=1.0):
         self.chassis_node = scn.Node()
         self.chassis_node.categoryBitMask = 1 << 1
 
@@ -1003,11 +1081,13 @@ class Car:
         self.trace.birthLocation = (
             scn.ParticleBirthLocation.SCNParticleBirthLocationVolume
         )
+        '''
         self.trace.handle(
             scn.ParticleEvent.Birth,
             [scn.ParticlePropertyPosition],
             self.traceParticleEventBlock,
         )
+        '''
 
         self.tire_node.addParticleSystem(self.trace)
 
