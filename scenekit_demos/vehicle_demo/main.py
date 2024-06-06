@@ -16,11 +16,13 @@ from cars_properties import cars_properties
 import logging
 import time
 
+IS_SIMPLE = False
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename="debug.log", encoding="utf-8", level=logging.DEBUG)
 
 db = scn.DebugOption
-debug_options = db.ShowPhysicsShapes  # | db.RenderAsWireframe
+debug_options = db.ShowPhysicsShapes #  | db.RenderAsWireframe
 
 
 def length(a):
@@ -44,7 +46,8 @@ class Demo:
         self.scene.physicsWorld.contactDelegate = self
         self.scn_view.scene = self.scene
 
-        self.scene.rootNode.addChildNode(self.make_floor())
+        self.floor_node = self.make_floor()
+        self.scene.rootNode.addChildNode(self.floor_node)
 
         self.camera_node = self.make_camera()
         self.scene.rootNode.addChildNode(self.camera_node)
@@ -52,7 +55,7 @@ class Demo:
         self.scene.rootNode.addChildNode(self.make_lights())
 
         self.cars = [
-            Car(scene=self.scene, properties=a_car_properties, simple=False)
+            Car(scene=self.scene, properties=a_car_properties, simple=IS_SIMPLE)
             for a_car_properties in cars_properties
         ]
 
@@ -176,7 +179,19 @@ class Demo:
             if not self.is_shutting_down:
                 self.shutdown()
             return
-
+        
+        if IS_SIMPLE:
+            angle = 0.1
+            multiplier = 1
+            for i, car in enumerate(self.cars):
+                car.physics_vehicle.setSteeringAngle(angle * i, 0)
+                car.physics_vehicle.setSteeringAngle(angle * i, 1)
+                car.physics_vehicle.applyEngineForce(multiplier * 950, 0)
+                car.physics_vehicle.applyEngineForce(multiplier * 950, 1)
+                car.physics_vehicle.applyBrakingForce(0, 2)
+                car.physics_vehicle.applyBrakingForce(0, 3)
+            return
+            
         cx, cz, node_dist = 0.0, 0.0, 99999999999.0
         camPos = self.camera_node.position
         for car in self.cars:
@@ -207,12 +222,12 @@ class Demo:
                     car.setProgram(CarProgram.obstacle)
 
                 elif length(car_position) > random.uniform(
-                    car.too_far, car.too_far + 30
+                    car.too_far_distance, car.too_far_distance + 30
                 ):
                     car.setProgram(CarProgram.turn_back)
 
             # the car.move method does not seem to use view or atTime, considere rewriting
-            # car.move(view, atTime)
+            #car.move(view, atTime)
             car.move(None, None)  # test to see if above is correct
 
         self.camera_node.lookAt((cx / len(self.cars), camPos.y, cz / len(self.cars)))
