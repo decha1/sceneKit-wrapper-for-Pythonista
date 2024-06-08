@@ -2,6 +2,11 @@ from main_view import MainView
 import sceneKit as scn
 
 
+
+def particle_system_handler():
+
+
+
 def _add_exhaust_smoke_particle_system():
     # add exhaust smoke
     smoke = scn.ParticleSystem()
@@ -31,6 +36,10 @@ def _add_exhaust_smoke_particle_system():
     smoker_node.position = (0.0, -0.15, 0.0)
     smoker_node.addParticleSystem(smoke)
 
+    smoke.handle(   scn.ParticleEvent.Birth,
+                    [scn.ParticlePropertyPosition],
+                    particle_system_handler)
+    
     return smoker_node
 
 
