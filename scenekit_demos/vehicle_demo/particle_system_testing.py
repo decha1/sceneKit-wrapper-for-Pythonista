@@ -2,7 +2,7 @@ from main_view import MainView
 import sceneKit as scn
 
 
-def _add_exhaust_smoke_particle_system(self):
+def _add_exhaust_smoke_particle_system():
     # add exhaust smoke
     smoke = scn.ParticleSystem()
     smoke.emitterShape = scn.Sphere(0.01)
@@ -30,10 +30,8 @@ def _add_exhaust_smoke_particle_system(self):
     smoker_node = scn.Node()
     smoker_node.position = (0.0, -0.15, 0.0)
     smoker_node.addParticleSystem(smoke)
-    exhaust_node = self.childNodeWithName("exhaust", True)
-    exhaust_node.addChildNode(smoker_node)
 
-    self.smoke = smoke
+    return smoker_node
 
 
 view = MainView()
