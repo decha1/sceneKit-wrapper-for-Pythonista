@@ -21,6 +21,8 @@ class MainView(ui.View):
 
         self.scene.rootNode.addChildNode(self.make_lights())
 
+        self.ui_view.present(style="fullscreen", hide_title_bar=True)
+
     def make_scn_view(self):
         scn_view = scn.View(frame=self.bounds, superView=self)
         scn_view.preferredFramesPerSecond = 30
@@ -66,3 +68,7 @@ class MainView(ui.View):
         all_lights_node.addChildNode(ambient_node)
 
         return all_lights_node
+
+
+if __name__ == "__main__":
+    MainView()
