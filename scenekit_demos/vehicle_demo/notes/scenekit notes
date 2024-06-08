@@ -1,0 +1,2 @@
+for physicsVehicle, assign the nodes that contain the wheels and the chassis to the scene
+before instantiating the physicsBody, or 
