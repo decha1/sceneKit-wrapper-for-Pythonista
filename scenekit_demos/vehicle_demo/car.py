@@ -239,12 +239,16 @@ class Car(scn.Node):
         if simple:
             self._add_simple_body()
             self.wheels = self._add_simple_wheels()
-        else:
-            self._add_body(properties)
-            self.wheels = self._add_wheels()
+            self._add_physics(scene, self.wheels)
+            return
+        
+        
+        self._add_body(properties)
+        
+        self.wheels = self._add_wheels()
 
         self._add_physics(scene, self.wheels)
-
+         
         self._add_audio_player(properties)
 
         self._add_tire_tracks_particle_system(self.wheels)
@@ -252,15 +256,16 @@ class Car(scn.Node):
         self._add_exhaust_smoke_particle_system()
 
         self._add_radar_nodes()
-
+        
         self._add_camera()
-
+        
         self.name = properties.pop("name", "car")
         self.program_table = [aProg(self) for aProg in Car.programs]
         self.current_program = CarProgram.idle
         self.program_stack = [self.current_program]
         self.is_brake_light_on = False
         self.too_far_distance = properties.pop("too_far", 30)
+        self.scene = scene
         self.current_speed = 0
 
     def move(self, view, atTime):
@@ -296,7 +301,7 @@ class Car(scn.Node):
                 )
             )
             hit_list.append(
-                self.physics_world.rayTestWithSegmentFromPoint(
+                self.scene.physicsWorld.rayTestWithSegmentFromPoint(
                     p1i,
                     p2i,
                     {scn.PhysicsTestSearchModeKey: scn.PhysicsTestSearchModeClosest},
@@ -304,7 +309,7 @@ class Car(scn.Node):
             )
 
         hit_list.append(
-            self.physics_world.rayTestWithSegmentFromPoint(
+            self.scene.physicsWorld.rayTestWithSegmentFromPoint(
                 p1L,
                 pSL,
                 {scn.PhysicsTestSearchModeKey: scn.PhysicsTestSearchModeClosest},
@@ -312,7 +317,7 @@ class Car(scn.Node):
         )
 
         hit_list.append(
-            self.physics_world.rayTestWithSegmentFromPoint(
+            self.scene.physicsWorld.rayTestWithSegmentFromPoint(
                 p1R,
                 pSR,
                 {scn.PhysicsTestSearchModeKey: scn.PhysicsTestSearchModeClosest},
@@ -366,7 +371,7 @@ class Car(scn.Node):
                     -self.radar_p2L.z if i % 2 == 0 else -2 * self.radar_p2L.z,
                 )
             )
-            hit_list += self.physics_world.rayTestWithSegmentFromPoint(
+            hit_list += self.scene.physicsWorld.rayTestWithSegmentFromPoint(
                 p1i,
                 p2i,
                 {scn.PhysicsTestSearchModeKey: scn.PhysicsTestSearchModeClosest},
@@ -457,9 +462,12 @@ class Car(scn.Node):
     def _add_simple_body(self):
         body = self._make_box(1)
         body.position = (0, 0.75, 0)
-        a = self._make_box(2)
-        a.position = (0, 0, 0)
-        # body.addChildNode(a)
+    
+        exhaust_node = scn.Node()
+        exhaust_node.name = "exhaust"
+        exhaust_node.position = (0.5, -0.42, -2.04)
+        #body.addChildNode(exhaust_node)
+        
         self.addChildNode(body)
 
     def _add_simple_wheels(self):
@@ -487,9 +495,10 @@ class Car(scn.Node):
         bl_wheel.addChildNode(base_wheel.clone())
         bl_wheel.position = (1, 0, -1)
 
-        wheels = [fr_wheel, br_wheel, fl_wheel, bl_wheel]
+        wheels = [fr_wheel, fl_wheel, br_wheel, bl_wheel]
         for wheel in wheels:
             self.addChildNode(wheel)
+            
         return wheels
 
     def _make_tube(self, inner, outer, thickness):
@@ -672,6 +681,9 @@ class Car(scn.Node):
         lamp_nodeL.addChildNode(lampGlasBack_nodeL)
 
         self.addChildNode(body_node)
+        
+        self.lampBack_colors = lampBack_colors
+        self.lampGlasBack = lampGlasBack # used to change colors of rear brake lights
 
     def _add_wheels(self):
         tire = scn.Tube(0.12, 0.35, 0.25)
@@ -848,19 +860,35 @@ class Car(scn.Node):
         self.radar_pSR = scn.Vector3(-10.0, 0.8, 2.4)
 
     def _add_camera(self):
+        ''' car body is 2x1x4
+        car body position is (0, 0.75, 0)
+        car position is (0, 0, 0)
+        
+        bottom edge of car is 0.25
+        top edge of box is 1.25
+        front edge is 2
+        '''
         camera_node = scn.Node()
-        camera_node.position = (0, 1.6, 2.05)
-        camera_node.lookAt((0, 0.9, 10))
+        camera_node.position = (0, 1.6, 2.05) #camera located at just beyond front edge of car
+        #camera_node.lookAt((0, 0.9, 10))
+        #is lookAt needed? What does this camera do? what do you want the camera to see during turning/
         camera = scn.Camera()
         camera.zNear = 0.25
         camera.zFar = 10
         camera.fieldOfView = 35
         camera_node.camera = camera
 
-        self.camera = camera_node
-        """
+        #simplify camera to one node for now
+        self.addChildNode(camera_node)
+        self.camera_node = camera_node
+        
+        '''
         camera_controller_node = scn.Node()
         camera_controller_node.addChildNode(camera_node)
         self.addChildNode(camera_controller_node)
-        self.camera_controller_node = camera_controller_node
-        """
+        self.camera_controller_node = camera_controller_node'''
+        
+        
+if __name__ == "__main__":
+    s = scn.Scene()
+    c = Car(s)
