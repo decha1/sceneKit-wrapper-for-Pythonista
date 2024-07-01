@@ -25,7 +25,7 @@ class MainView(ui.View):
 
         self.scene.rootNode.addChildNode(self.make_floor())
 
-        self.present(style="fullscreen", hide_title_bar=True)
+        #self.present(style="fullscreen", hide_title_bar=True)
 
     def make_scn_view(self):
         scn_view = scn.View(frame=self.bounds, superView=self)
