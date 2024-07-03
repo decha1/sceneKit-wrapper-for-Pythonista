@@ -1,3 +1,12 @@
 {
-  
+  "files.exclude": {
+    "*.git": true,
+    "*.git.*": true,
+    "*.gitignore": true,
+    "*.gitignore.*": true,
+    "*.mypy_cache": true,
+    "*.mypy_cache.*": true,
+    "*.vscode": true,
+    "*.vscode.*": true
+  }
 }
