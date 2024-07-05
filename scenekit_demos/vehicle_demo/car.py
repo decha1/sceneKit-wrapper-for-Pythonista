@@ -234,8 +234,8 @@ class Car(scn.Node):
         # put this car in the scene.
         # This must be done before the physicsBody instantiation in order to get the correct physicsShape
         scene.rootNode.addChildNode(self)
-        self.position = properties.pop("position", (0, 0, 0))
-
+        self.position = properties.get("position", (0, 0, 0))
+        
         if simple:
             self._add_simple_body()
             self.wheels = self._add_simple_wheels()
@@ -259,12 +259,12 @@ class Car(scn.Node):
         
         self._add_camera()
         
-        self.name = properties.pop("name", "car")
+        self.name = properties.get("name", "car")
         self.program_table = [aProg(self) for aProg in Car.programs]
         self.current_program = CarProgram.idle
         self.program_stack = [self.current_program]
         self.is_brake_light_on = False
-        self.too_far_distance = properties.pop("too_far", 30)
+        self.too_far_distance = properties.get("too_far", 30)
         self.scene = scene
         self.current_speed = 0
 
@@ -525,7 +525,7 @@ class Car(scn.Node):
         return scn.Node.nodeWithGeometry(geometry)
 
     def _add_body(self, properties):
-        body_color = properties.pop("body_color", (0.6, 0.0, 0.0))
+        body_color = properties.get("body_color", (0.6, 0.0, 0.0))
         body_material = scn.Material()
         body_material.diffuse.contents = body_color
         body_material.specular.contents = (0.88, 0.88, 0.88)
@@ -778,8 +778,8 @@ class Car(scn.Node):
     def _add_audio_player(self, properties):
         # -----------------------------------------------------------------
         # add sound to the car
-        sound_file = properties.pop("sound", "casino:DiceThrow2")
-        sound_volume = properties.pop("volume", 1.0)
+        sound_file = properties.get("sound", "casino:DiceThrow2")
+        sound_volume = properties.get("volume", 1.0)
         sound = scn.AudioSource(sound_file)
         sound.load()
         sound.loops = True
