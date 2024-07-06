@@ -78,9 +78,19 @@ D. allowing user to control camera
     An easier alternative to have lights follow the camera is to set the transform property of the node containing lights equal to the transform property of the sceneView's pointOfView property in the update delegate. This has the advantage of not having to detect the creation of the "kSCNFreeViewCameraName" node with the user's first movement.
    
 """
+
+# following block of code is a hack. In pythonista, user modules are reloaded automatically, i.e. there is no need to restart the interpreter. Making sceneKit a user module allows changes to take place when rerunning, as opposed to placing sceneKit in the site-packages folder, which loads only once when the interpreter starts
+import sys, os.path
+sceneKit_directory = os.path.dirname(__file__)
+sceneKit_directory = os.path.join(sceneKit_directory, '..')
+sceneKit_directory = os.path.join(sceneKit_directory, '..')
+sceneKit_directory = os.path.abspath(sceneKit_directory)
+sys.path.append(sceneKit_directory)
+
 from objc_util import on_main_thread
 import sceneKit as scn
 import ui
+
 
 
 class Demo:
@@ -227,7 +237,7 @@ class Demo:
     def update(self, aview, atime):
         #print("update")
         self.count += 1
-        print(.count)
+        #print(.count)
         self.camera_node.transform = aview.pointOfView.transform
         return
         
