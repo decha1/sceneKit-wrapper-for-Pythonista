@@ -7,6 +7,16 @@ This script needs the Gestures module from
 
 https://github.com/mikaelho/pythonista-gestures
 """
+
+# following block of code is a hack. In pythonista, user modules are reloaded automatically, i.e. there is no need to restart the interpreter. Making sceneKit a user module allows changes to take place when rerunning, as opposed to placing sceneKit in the site-packages folder, which loads only once when the interpreter starts
+import sys, os.path
+sceneKit_directory = os.path.dirname(__file__)
+sceneKit_directory = os.path.join(sceneKit_directory, '..')
+sceneKit_directory = os.path.join(sceneKit_directory, '..')
+sceneKit_directory = os.path.abspath(sceneKit_directory)
+sys.path.append(sceneKit_directory)
+
+
 from objc_util import *
 import sceneKit as scn
 import ui
@@ -716,22 +726,29 @@ class GameViewController:
         self.ticks = 0
 
     def shutDown(self):
-        self.main_view.close()
+        self.scnView.delegate = None
+        
+        # The following two statements seem to have no effect
+        #self.scnView.scene.paused = False
+        #self.scnView.scene.playing = False
+        
         motion.stop_updates()
         gestures.remove_all_gestures(self.main_view)
         self.myCameraNode.removeAllActions()
         self.pipeNode.removeAllParticleSystems()
         self.smokeHandle.removeAllParticleSystems()
         self.scnView.scene.physicsWorld.removeAllBehaviors()
-        self.scnView.scene.paused = True
-
+        
         for aView in self.main_view.subviews:
             self.main_view.remove_subview(aView)
         
-        self.scnView.removeFromSuperview()
-        return
+        # The following will cause Pythonista to crash
+        #self.scnView.removeFromSuperview()
+        
         self.main_view.close()
-        ui.delay(self.exit, 2.0)
+        
+        # commented out, now returns to Pythonista editor after closing
+        #ui.delay(self.exit, 2.0)
 
     def exit(self):
         raise SystemExit()
