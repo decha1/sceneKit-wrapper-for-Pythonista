@@ -11,12 +11,13 @@ See the README.md for details.
 import sys, os.path
 sceneKit_directory = os.path.dirname(__file__)
 sceneKit_directory = os.path.join(sceneKit_directory, '..')
+sceneKit_directory = os.path.join(sceneKit_directory, '..')
 sceneKit_directory = os.path.abspath(sceneKit_directory)
 sys.path.append(sceneKit_directory)
 
 import sceneKit as scn
 import ui
-import Gestures
+import gestures
 
 from data import *
 from hud import *
@@ -52,8 +53,8 @@ class MainViewController:
         w, h = ui.get_window_size()
         data.main_view.frame = (0, 0, w, h)
 
-        data.gestures_instance = Gestures.Gestures()
-        data.gestures_instance.add_tap(data.main_view, self.simple_tap)
+        data.gestures_instance = gestures
+        data.gestures_instance.tap(data.main_view, self.simple_tap)
 
         data.hud_layer = Hud()
         self.next_stage(selector.SelectorStage())
