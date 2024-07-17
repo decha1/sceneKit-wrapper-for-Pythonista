@@ -24,7 +24,7 @@ class SelectorStage:
         self.selector_views = setup.setup_selector_views()
         self.animation = setup.setup_show_drawer_animation()
         self.animation.repeatCount = 1
-        self.animation.animationDidStop = self.next_selector_animation
+        #self.animation.animationDidStop = self.next_selector_animation
         self.animation_player = scn.AnimationPlayer(self.animation)
 
         self.selector_views[0].scene.background.addAnimationPlayer(
@@ -39,6 +39,7 @@ class SelectorStage:
         data.hud_layer.set_title("Cube puzzles")
 
     def next_selector_animation(self, animation, receiver, completed):
+        return
         if completed:
             self.selector_views[
                 self.animation_index

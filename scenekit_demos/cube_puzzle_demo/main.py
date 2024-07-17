@@ -32,9 +32,12 @@ class MainViewController:
             data.gestures_instance.remove_all_gestures(data.main_view)
             for aSceneView in data.active_stage.scene_views():
                 aSceneView.scene.paused = True
-                aSceneView.removeFromSuperview()
+                #aSceneView.removeFromSuperview()
+                aSceneView.delegate = None
             for aView in data.main_view.subviews:
-                data.main_view.remove_subview(aView)
+                pass
+                #data.main_view.remove_subview(aView)
+                
 
         def layout(self):
             _, _, w, h = data.main_view.frame
