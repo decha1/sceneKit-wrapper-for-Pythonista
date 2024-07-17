@@ -171,7 +171,7 @@ class Demo:
 
     def shutdown(self):
         self.is_shutting_down = True
-
+        self.scn_view.delegate = None
         # don't know if the following pause statements actually do anything
         self.scene.paused = True
         self.scn_view.pause()

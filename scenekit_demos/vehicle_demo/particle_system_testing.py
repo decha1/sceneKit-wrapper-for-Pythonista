@@ -1,6 +1,14 @@
+# following block of code is a hack. In pythonista, user modules are reloaded automatically, i.e. there is no need to restart the interpreter
+import sys, os.path
+sceneKit_directory = os.path.dirname(__file__)
+sceneKit_directory = os.path.join(sceneKit_directory, '..')
+sceneKit_directory = os.path.join(sceneKit_directory, '..')
+sceneKit_directory = os.path.abspath(sceneKit_directory)
+sys.path.append(sceneKit_directory)
+
 from main_view import MainView
 from objc_util import *
-import sceneKit1 as scn
+import sceneKit as scn
 import ctypes
 
 import logging
@@ -62,8 +70,8 @@ def blockInterface(self, _cmd, xData, dataStride, indicies, count):
 
 
 
-def particle_system_handler(a, b, c, d, e):
-    logger.debug('inside handler')
+def particle_system_handler():
+    #logger.debug('inside handler')
     #print("handler")
     return 
 
@@ -100,6 +108,10 @@ def _add_exhaust_smoke_particle_system(x=None):
     smoker_node.position = (0.0, 1, 0.0)
     smoker_node.addParticleSystem(smoke)
 
+    smoke.handleEvent(scn.ParticleEvent.Birth,
+            [scn.ParticlePropertyPosition],
+            particle_system_handler)
+            
     if x:
         global block_code
         block_code = ObjCBlock(
@@ -115,6 +127,11 @@ def _add_exhaust_smoke_particle_system(x=None):
         )
         print(block_code)
         smoke.ID.handleEvent_forProperties_withBlock_(scn.ParticleEvent.Birth, [scn.ParticlePropertyPosition], block_code)
+        self.tire_tracks.handle(
+            scn.ParticleEvent.Birth,
+            [scn.ParticlePropertyPosition],
+            self.trackParticleEventBlock,
+        )
         #smoke.ID.handleEvent_forProperties_withBlock_(0, [], None)
         logger.debug('after setting handleEvent')
     return smoker_node
@@ -123,6 +140,6 @@ def _add_exhaust_smoke_particle_system(x=None):
 logger.debug('starting')
 view = MainView()
 
-view.scene.rootNode.addChildNode(_add_exhaust_smoke_particle_system(True))
+view.scene.rootNode.addChildNode(_add_exhaust_smoke_particle_system(False))
 
 view.present(style="fullscreen", hide_title_bar=True)
