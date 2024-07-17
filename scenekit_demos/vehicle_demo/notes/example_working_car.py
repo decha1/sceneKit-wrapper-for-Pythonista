@@ -9,7 +9,14 @@ Interesting points :
     
     The mechanism of how wheel position and rotation are determined once a physicsVehicle is added to a scene's physicBehavior is not clear.
 '''
-
+# following block of code is a hack. In pythonista, user modules are reloaded automatically, i.e. there is no need to restart the interpreter
+import sys, os.path
+sceneKit_directory = os.path.dirname(__file__)
+sceneKit_directory = os.path.join(sceneKit_directory, '..')
+sceneKit_directory = os.path.join(sceneKit_directory, '..')
+sceneKit_directory = os.path.join(sceneKit_directory, '..')
+sceneKit_directory = os.path.abspath(sceneKit_directory)
+sys.path.append(sceneKit_directory)
 
 
 import sceneKit as scn
